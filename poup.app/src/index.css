@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Diretivas do Tailwind CSS.
+  Durante o processo de build, o Tailwind substituirá
+  essas diretivas pelos estilos de utilitário correspondentes.
+*/
+
+
+/* Você pode adicionar estilos globais personalizados aqui, se necessário.
+  Por exemplo, para o corpo da página:
+*/
+body {
+  font-family: 'Inter', sans-serif; /* Exemplo de uma fonte limpa e moderna */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f9fafb; /* Cor de fundo padrão do tema */
+}

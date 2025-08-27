@@ -1,0 +1,13 @@
+/* src/App.css */
+
+/* Este arquivo pode ser usado para adicionar estilos específicos 
+  para o componente App.tsx, se necessário.
+
+  Por exemplo, você poderia adicionar uma transição suave para 
+  mudanças de cor de fundo:
+  
+ 
+*/
+body {
+    transition: background-color 0.3s ease;
+  }
