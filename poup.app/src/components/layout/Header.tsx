@@ -5,11 +5,15 @@ import type { ActiveView } from '../../types';
 interface HeaderProps {
   onNavigate: (view: ActiveView) => void;
   onLogout: () => void;
+  userName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, userName = 'Usuário' }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    
+    // Pega a primeira letra do nome para o avatar
+    const avatarLetter = userName.charAt(0).toUpperCase();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -31,8 +35,10 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout }) => {
                     </div>
                     <div className="relative" ref={dropdownRef}>
                         <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-semibold">B</div>
-                            <span className="text-gray-700 font-medium hidden sm:block">bellamy</span>
+                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                {avatarLetter}
+                            </div>
+                            <span className="text-gray-700 font-medium hidden sm:block">{userName}</span>
                             <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {dropdownOpen && (
