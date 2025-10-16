@@ -1,0 +1,32 @@
+{
+  "name": "poupapp-api",
+  "version": "1.0.0",
+  "description": "API for PoupApp - Subscription Management",
+  "main": "src/server.ts",
+    "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src --out-dir build",
+    "start": "node build/server.js",
+    "db:seed": "prisma db seed"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.0.0",
+    "@fastify/jwt": "^7.0.0",
+    "@prisma/client": "^5.0.0",
+    "bcryptjs": "^2.4.3",
+    "fastify": "^4.0.0",
+    "fastify-plugin": "^5.1.0",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
+    "@types/node": "^20.0.0",
+    "prisma": "^5.0.0",
+    "tsup": "^7.0.0",
+    "tsx": "^3.12.7",
+    "typescript": "^5.0.0"
+  }
+}

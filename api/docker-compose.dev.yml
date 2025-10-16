@@ -1,0 +1,15 @@
+volumes:
+  mysql_poup_local_dev:
+
+services:
+  mysql:
+    image: mysql
+    container_name: mysql_poup_local_dev
+    environment:
+      MYSQL_ROOT_PASSWORD: 'dev'
+      MYSQL_DATABASE: 'poup'
+    ports:
+      - 9003:3306
+    volumes:
+      - mysql_poup_local_dev:/var/lib/mysql
+
