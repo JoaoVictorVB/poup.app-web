@@ -1,0 +1,47 @@
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+
+/* Custom base styles */
+:root {
+  --color-primary: #4F46E5;
+  --color-secondary: #10B981;
+  --color-background: #F9FAFB;
+  --color-text: #111827;
+}
+
+/* Custom component styles */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #4338CA;
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #059669;
+}
+
+.input-field {
+  border: 1px solid #D1D5DB;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
