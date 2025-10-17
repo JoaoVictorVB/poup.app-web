@@ -11,20 +11,17 @@ export function useAuth() {
     const token = localStorage.getItem('@PoupApp:token');
     const tokenExpiry = localStorage.getItem('@PoupApp:tokenExpiry');
     
-    // Verificar se o token expirou
     if (token && tokenExpiry) {
       const expiryDate = new Date(tokenExpiry);
       const now = new Date();
       
       if (now >= expiryDate) {
-        // Token expirado, limpar storage
         localStorage.removeItem('@PoupApp:token');
         localStorage.removeItem('@PoupApp:tokenExpiry');
         setLoading(false);
         return;
       }
       
-      // Token válido, buscar perfil
       authService.getProfile()
         .then(user => setUser(user))
         .catch(() => {

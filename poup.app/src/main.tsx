@@ -1,16 +1,11 @@
-// src/main.tsx
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App'; // Importa o componente principal
-import './index.css'; // Importa os estilos globais (Tailwind)
+import App from './App';
+import './index.css';
 
-// Encontra o elemento 'root' no seu arquivo public/index.html
 const rootElement = document.getElementById('root');
 
-// Garante que o elemento root exista antes de renderizar
 if (rootElement) {
-  // Cria a raiz da aplicação React e renderiza o componente principal 'App'
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <App />
