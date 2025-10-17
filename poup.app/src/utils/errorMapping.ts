@@ -31,6 +31,18 @@ const errorMessagesMap: Record<string, string> = {
   'Email ou senha incorretos': 'Email ou senha incorretos. Verifique e tente novamente.',
   'Este email já está cadastrado': 'Este email já está em uso. Tente fazer login ou use outro email.',
   
+  // Mensagens de segurança de senha
+  'A senha deve ter no mínimo 10 caracteres': 'A senha deve ter no mínimo 10 caracteres.',
+  'A senha deve conter pelo menos uma letra maiúscula': 'A senha deve conter pelo menos uma letra maiúscula.',
+  'A senha deve conter pelo menos uma letra minúscula': 'A senha deve conter pelo menos uma letra minúscula.',
+  'A senha deve conter pelo menos um número': 'A senha deve conter pelo menos um número.',
+  'A senha deve conter pelo menos um caractere especial (!@#$%^&*...)': 'A senha deve conter pelo menos um caractere especial (!@#$%...).',
+  'Email inválido. Por favor, insira um email válido.': 'Email inválido. Verifique o formato do email.',
+  'Senha é obrigatória.': 'Por favor, informe sua senha.',
+  
+  'Invalid credentials': 'Email ou senha incorretos.',
+  'User already exists': 'Este email já está cadastrado.',
+  
   'A data de pagamento não pode ser no passado': 'Escolha uma data futura para o próximo pagamento.',
   'A data do evento não pode ser há mais de 1 ano': 'Escolha uma data mais recente para o evento.',
   'Preço deve ser maior que zero': 'Informe um valor válido para o preço.',
@@ -73,20 +85,33 @@ export function getUserFriendlyMessage(message: string, type?: ApiErrorType | 'N
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function handleApiError(error: any): AppError {
   if (error.response?.data) {
-    const apiError: ApiError = error.response.data;
+    const responseData = error.response.data;
     
     const fieldErrors: Record<string, string> = {};
-    if (apiError.details && Array.isArray(apiError.details)) {
-      apiError.details.forEach((detail) => {
+    if (responseData.errors && Array.isArray(responseData.errors)) {
+      responseData.errors.forEach((detail: { field: string; message: string }) => {
         fieldErrors[detail.field] = detail.message;
       });
     }
     
+    let errorType: ApiErrorType | 'NetworkError' = 'UnknownError' as ApiErrorType;
+    const statusCode = error.response.status;
+    
+    if (statusCode === 400) errorType = 'ValidationError';
+    else if (statusCode === 401) errorType = 'UnauthorizedError';
+    else if (statusCode === 403) errorType = 'ForbiddenError';
+    else if (statusCode === 404) errorType = 'NotFoundError';
+    else if (statusCode === 409) errorType = 'ConflictError';
+    else if (statusCode === 423) errorType = 'UnauthorizedError'; // Conta bloqueada
+    else if (statusCode >= 500) errorType = 'InternalServerError';
+    
+    const message = responseData.message || 'Unknown error';
+    
     return {
-      type: apiError.error,
-      message: apiError.message,
-      userMessage: getUserFriendlyMessage(apiError.message, apiError.error),
-      statusCode: apiError.statusCode,
+      type: errorType,
+      message,
+      userMessage: getUserFriendlyMessage(message, errorType),
+      statusCode,
       fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
     };
   }
@@ -107,7 +132,7 @@ export function handleApiError(error: any): AppError {
 }
 
 export function isAuthError(error: AppError): boolean {
-  return error.type === 'UnauthorizedError' || error.statusCode === 401;
+  return error.type === 'UnauthorizedError' || error.statusCode === 401 || error.statusCode === 423;
 }
 
 export function isValidationError(error: AppError): boolean {
