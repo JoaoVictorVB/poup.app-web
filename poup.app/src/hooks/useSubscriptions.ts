@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { Subscription } from '../interfaces';
 import { subscriptionService } from '../services/api';
 
 export function useSubscriptions() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSubscriptions = async () => {
+  const fetchSubscriptions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -19,10 +19,6 @@ export function useSubscriptions() {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchSubscriptions();
   }, []);
 
   const createSubscription = async (subscription: Omit<Subscription, 'id' | 'created_at' | 'user_id'>): Promise<Subscription> => {

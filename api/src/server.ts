@@ -1,11 +1,9 @@
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import fastify from 'fastify'
+import { appRoutes } from './http/routes'
 import { errorHandler } from './lib/errorHandler'
 import authenticate from './plugins/authenticate'
-import { calendarRoutes } from './routes/calendar'
-import { subscriptionRoutes } from './routes/subscriptions'
-import { userRoutes } from './routes/users'
 
 const app = fastify({
   logger: process.env.NODE_ENV === 'development',
@@ -20,13 +18,14 @@ app.register(cors, {
 
 app.register(jwt, {
   secret: process.env.JWT_SECRET || 'poupapp-secret',
+  sign: {
+    expiresIn: '30m',
+  },
 })
 
 app.register(authenticate)
 
-app.register(userRoutes)
-app.register(subscriptionRoutes)
-app.register(calendarRoutes)
+app.register(appRoutes)
 
 app.listen({
   port: Number(process.env.PORT) || 3333,

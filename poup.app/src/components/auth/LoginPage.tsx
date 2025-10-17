@@ -1,4 +1,4 @@
-import { LogIn } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import React, { useState } from 'react';
 import type { AppError } from '../../utils/errorMapping';
 
@@ -10,6 +10,7 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchMode }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -66,16 +67,27 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchMode }) => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
               Senha
             </label>
-            <input
-              className="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-              id="password"
-              type="password"
-              placeholder="******************"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <div className="relative">
+              <input
+                className="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 pr-12 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="******************"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 -mt-1.5 text-gray-500 hover:text-gray-700 focus:outline-none"
+                disabled={loading}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
           <div className="flex items-center justify-between">
             <button

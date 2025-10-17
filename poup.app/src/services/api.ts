@@ -43,9 +43,9 @@ export const authService = {
     return data.user;
   },
 
-  async signIn(email: string, password: string): Promise<string> {
+  async signIn(email: string, password: string): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>('/sessions', { email, password });
-    return data.token;
+    return data;
   },
 
   async getProfile(): Promise<User> {

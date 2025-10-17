@@ -1,22 +1,25 @@
+import { makeCreateCalendarEventUseCase } from '@/use-cases/calendar/factories/make-create-calendar-event-use-case'
+import { makeDeleteCalendarEventUseCase } from '@/use-cases/calendar/factories/make-delete-calendar-event-use-case'
+import { makeFetchAllCalendarEventsUseCase } from '@/use-cases/calendar/factories/make-fetch-all-calendar-events-use-case'
+import { makeUpdateCalendarEventUseCase } from '@/use-cases/calendar/factories/make-update-calendar-event-use-case'
+import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
+import { ValidationError } from '@/use-cases/errors/validation-error'
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { NotFoundError, ValidationError } from '../lib/errors'
-import { prisma } from '../lib/prisma'
 
 export async function calendarRoutes(app: FastifyInstance) {
   app.get('/calendar', {
     preHandler: [app.authenticate],
   }, async () => {
-    const events = await prisma.calendarEvent.findMany({
-      orderBy: { date: 'asc' },
-    })
+    const fetchAllCalendarEventsUseCase = makeFetchAllCalendarEventsUseCase()
+    const { events } = await fetchAllCalendarEventsUseCase.execute()
 
     return { events }
   })
 
   app.post('/calendar', {
     preHandler: [app.authenticate],
-  }, async (request) => {
+  }, async (request, reply) => {
     const createEventSchema = z.object({
       title: z.string().min(1, 'Título é obrigatório').max(100, 'Título muito longo'),
       date: z.string().datetime('Data inválida'),
@@ -27,28 +30,27 @@ export async function calendarRoutes(app: FastifyInstance) {
 
     const { title, date, type } = createEventSchema.parse(request.body)
 
-    const eventDate = new Date(date)
-    const oneYearAgo = new Date()
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-    
-    if (eventDate < oneYearAgo) {
-      throw new ValidationError('A data do evento não pode ser há mais de 1 ano')
-    }
-
-    const event = await prisma.calendarEvent.create({
-      data: {
+    try {
+      const createCalendarEventUseCase = makeCreateCalendarEventUseCase()
+      const { event } = await createCalendarEventUseCase.execute({
         title,
-        date: eventDate,
+        date: new Date(date),
         type,
-      },
-    })
+      })
 
-    return { event }
+      return reply.status(201).send({ event })
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return reply.status(400).send({ message: error.message })
+      }
+
+      throw error
+    }
   })
 
   app.put('/calendar/:id', {
     preHandler: [app.authenticate],
-  }, async (request) => {
+  }, async (request, reply) => {
     const paramsSchema = z.object({
       id: z.string().uuid('ID inválido'),
     })
@@ -65,33 +67,27 @@ export async function calendarRoutes(app: FastifyInstance) {
 
     const data = updateEventSchema.parse(request.body)
 
-    const existingEvent = await prisma.calendarEvent.findUnique({
-      where: { id },
-    })
+    try {
+      const updateCalendarEventUseCase = makeUpdateCalendarEventUseCase()
+      const { event } = await updateCalendarEventUseCase.execute({
+        eventId: id,
+        data: {
+          ...data,
+          date: data.date ? new Date(data.date) : undefined,
+        },
+      })
 
-    if (!existingEvent) {
-      throw new NotFoundError('Evento não encontrado')
-    }
-
-    if (data.date) {
-      const eventDate = new Date(data.date)
-      const oneYearAgo = new Date()
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-      
-      if (eventDate < oneYearAgo) {
-        throw new ValidationError('A data do evento não pode ser há mais de 1 ano')
+      return { event }
+    } catch (error) {
+      if (error instanceof ResourceNotFoundError) {
+        return reply.status(404).send({ message: error.message })
       }
+      if (error instanceof ValidationError) {
+        return reply.status(400).send({ message: error.message })
+      }
+
+      throw error
     }
-
-    const event = await prisma.calendarEvent.update({
-      where: { id },
-      data: {
-        ...data,
-        date: data.date ? new Date(data.date) : undefined,
-      },
-    })
-
-    return { event }
   })
 
   app.delete('/calendar/:id', {
@@ -103,18 +99,17 @@ export async function calendarRoutes(app: FastifyInstance) {
 
     const { id } = paramsSchema.parse(request.params)
 
-    const existingEvent = await prisma.calendarEvent.findUnique({
-      where: { id },
-    })
+    try {
+      const deleteCalendarEventUseCase = makeDeleteCalendarEventUseCase()
+      await deleteCalendarEventUseCase.execute({ eventId: id })
 
-    if (!existingEvent) {
-      throw new NotFoundError('Evento não encontrado')
+      return reply.status(204).send()
+    } catch (error) {
+      if (error instanceof ResourceNotFoundError) {
+        return reply.status(404).send({ message: error.message })
+      }
+
+      throw error
     }
-
-    await prisma.calendarEvent.delete({
-      where: { id },
-    })
-
-    return reply.status(204).send()
   })
 }

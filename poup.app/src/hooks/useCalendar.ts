@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { CalendarEvent } from '../interfaces';
 import { calendarService } from '../services/api';
 
 export function useCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -19,10 +19,6 @@ export function useCalendar() {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchEvents();
   }, []);
 
   const createEvent = async (event: Omit<CalendarEvent, 'id' | 'created_at'>): Promise<CalendarEvent> => {

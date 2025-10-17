@@ -9,11 +9,24 @@ export function useAuth() {
 
   useEffect(() => {
     const token = localStorage.getItem('@PoupApp:token');
-    if (token) {
+    const tokenExpiry = localStorage.getItem('@PoupApp:tokenExpiry');
+    
+    if (token && tokenExpiry) {
+      const expiryDate = new Date(tokenExpiry);
+      const now = new Date();
+      
+      if (now >= expiryDate) {
+        localStorage.removeItem('@PoupApp:token');
+        localStorage.removeItem('@PoupApp:tokenExpiry');
+        setLoading(false);
+        return;
+      }
+      
       authService.getProfile()
         .then(user => setUser(user))
         .catch(() => {
           localStorage.removeItem('@PoupApp:token');
+          localStorage.removeItem('@PoupApp:tokenExpiry');
         })
         .finally(() => setLoading(false));
     } else {
@@ -22,11 +35,11 @@ export function useAuth() {
   }, []);
 
   const signIn = async (email: string, password: string): Promise<void> => {
-    const token = await authService.signIn(email, password);
-    localStorage.setItem('@PoupApp:token', token);
+    const response = await authService.signIn(email, password);
+    localStorage.setItem('@PoupApp:token', response.token);
+    localStorage.setItem('@PoupApp:tokenExpiry', response.expiresAt);
     
-    const user = await authService.getProfile();
-    setUser(user);
+    setUser(response.user);
   };
 
   const signUp = async (name: string, email: string, password: string): Promise<void> => {
@@ -37,6 +50,7 @@ export function useAuth() {
 
   const signOut = () => {
     localStorage.removeItem('@PoupApp:token');
+    localStorage.removeItem('@PoupApp:tokenExpiry');
     setUser(null);
   };
 

@@ -1,5 +1,5 @@
 import { BarChart2, Calendar, LayoutDashboard, User } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import LoginPage from './components/auth/LoginPage';
 import SignUpPage from './components/auth/SignUpPage';
@@ -24,6 +24,7 @@ export default function App() {
     createSubscription,
     updateSubscription,
     deleteSubscription,
+    refetch: refetchSubscriptions,
   } = useSubscriptions();
 
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -31,6 +32,12 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [deletingSubscriptionId, setDeletingSubscriptionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      refetchSubscriptions();
+    }
+  }, [user, refetchSubscriptions]);
 
   const handleLogin = async (email: string, password: string) => {
     await signIn(email, password);

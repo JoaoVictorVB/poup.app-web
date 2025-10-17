@@ -24,10 +24,14 @@ export interface CalendarEvent {
 
 export interface AuthResponse {
   token: string;
+  user: User;
+  expiresAt: string;
+  message: string;
 }
 
 export interface UserResponse {
   user: User;
+  message?: string;
 }
 
 export interface SubscriptionsResponse {
