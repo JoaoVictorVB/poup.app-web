@@ -1,0 +1,73 @@
+version: '3.8'
+
+volumes:
+  mysql_poup_data:
+
+networks:
+  poup_network:
+    driver: bridge
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: poup_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'dev'
+      MYSQL_DATABASE: 'poup'
+    ports:
+      - "9003:3306"
+    volumes:
+      - mysql_poup_data:/var/lib/mysql
+    networks:
+      - poup_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: poup_api
+    ports:
+      - "9777:3000"
+    environment:
+      - DATABASE_URL=mysql://root:dev@mysql:3306/poup?schema=public
+      - JWT_SECRET=145452f61af065aa418311bc6f87a255
+      - FRONTEND_URL=http://localhost:9776
+      - PORT=3000
+      - NODE_ENV=development
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - poup_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.95"
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  frontend:
+    build:
+      context: ./poup.app
+      dockerfile: Dockerfile
+    container_name: poup_frontend
+    ports:
+      - "9776:3000"
+    environment:
+      - VITE_API_URL=http://localhost:9777
+    depends_on:
+      - api
+    networks:
+      - poup_network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.95"
+          memory: 512M
+        reservations:
+          memory: 256M
