@@ -1,4 +1,4 @@
-import { UserPlus } from 'lucide-react';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import React, { useState } from 'react';
 import type { AppError } from '../../utils/errorMapping';
 
@@ -11,9 +11,33 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchMode }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [passwordStrength, setPasswordStrength] = useState({
+    minLength: false,
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
+
+  const validatePasswordStrength = (pass: string) => {
+    setPasswordStrength({
+      minLength: pass.length >= 10,
+      hasUpperCase: /[A-Z]/.test(pass),
+      hasLowerCase: /[a-z]/.test(pass),
+      hasNumber: /[0-9]/.test(pass),
+      hasSpecialChar: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pass),
+    });
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    validatePasswordStrength(newPassword);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,21 +123,61 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchMode }) => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="signup-password">
               Senha
             </label>
-            <input
-              className={`shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 ${
-                fieldErrors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'
-              }`}
-              id="signup-password"
-              type="password"
-              placeholder="******************"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              disabled={loading}
-            />
+            <div className="relative">
+              <input
+                className={`shadow-sm appearance-none border rounded-lg w-full py-3 px-4 pr-12 text-gray-700 leading-tight focus:outline-none focus:ring-2 ${
+                  fieldErrors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'
+                }`}
+                id="signup-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="******************"
+                value={password}
+                onChange={handlePasswordChange}
+                required
+                minLength={10}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                disabled={loading}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {fieldErrors.password && (
               <p className="text-red-500 text-xs italic mt-1 mb-3">{fieldErrors.password}</p>
+            )}
+            
+            {/* Indicadores de força da senha */}
+            {password && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs font-semibold text-gray-600 mb-1">Requisitos da senha:</p>
+                <div className="space-y-1">
+                  <div className={`flex items-center text-xs ${passwordStrength.minLength ? 'text-green-600' : 'text-gray-400'}`}>
+                    <span className="mr-2">{passwordStrength.minLength ? '✓' : '○'}</span>
+                    Mínimo de 10 caracteres
+                  </div>
+                  <div className={`flex items-center text-xs ${passwordStrength.hasUpperCase ? 'text-green-600' : 'text-gray-400'}`}>
+                    <span className="mr-2">{passwordStrength.hasUpperCase ? '✓' : '○'}</span>
+                    Pelo menos uma letra maiúscula
+                  </div>
+                  <div className={`flex items-center text-xs ${passwordStrength.hasLowerCase ? 'text-green-600' : 'text-gray-400'}`}>
+                    <span className="mr-2">{passwordStrength.hasLowerCase ? '✓' : '○'}</span>
+                    Pelo menos uma letra minúscula
+                  </div>
+                  <div className={`flex items-center text-xs ${passwordStrength.hasNumber ? 'text-green-600' : 'text-gray-400'}`}>
+                    <span className="mr-2">{passwordStrength.hasNumber ? '✓' : '○'}</span>
+                    Pelo menos um número
+                  </div>
+                  <div className={`flex items-center text-xs ${passwordStrength.hasSpecialChar ? 'text-green-600' : 'text-gray-400'}`}>
+                    <span className="mr-2">{passwordStrength.hasSpecialChar ? '✓' : '○'}</span>
+                    Pelo menos um caractere especial (!@#$%...)
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           <div className="flex items-center justify-between">
