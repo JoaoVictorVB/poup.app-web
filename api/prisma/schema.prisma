@@ -11,12 +11,15 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  name          String
-  email         String         @unique
-  password_hash String
-  created_at    DateTime       @default(now())
-  subscriptions Subscription[]
+  id               String         @id @default(uuid())
+  name             String
+  email            String         @unique
+  password_hash    String
+  password_history String?        @db.Text
+  login_attempts   Int            @default(0)
+  locked_until     DateTime?
+  created_at       DateTime       @default(now())
+  subscriptions    Subscription[]
 
   @@map("users")
 }
@@ -38,7 +41,7 @@ model CalendarEvent {
   id         String   @id @default(uuid())
   title      String
   date       DateTime
-  type       String // "payment" | "reminder"
+  type       String
   created_at DateTime @default(now())
 
   @@map("calendar_events")
