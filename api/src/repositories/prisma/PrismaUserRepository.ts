@@ -1,10 +1,10 @@
 import { User } from '@prisma/client'
 import { prisma } from '../../lib/prisma'
 import {
-  AuthenticationQuery,
-  CreateUserDTO,
-  UpdateUserDTO,
-  UsersRepository
+    AuthenticationQuery,
+    CreateUserDTO,
+    UpdateUserDTO,
+    UsersRepository
 } from '../IUserRepository'
 
 export class PrismaUsersRepository implements UsersRepository {
@@ -33,6 +33,12 @@ export class PrismaUsersRepository implements UsersRepository {
     return prisma.user.update({
       where: { id: userId },
       data,
+    })
+  }
+
+  async delete(userId: string): Promise<void> {
+    await prisma.user.delete({
+      where: { id: userId },
     })
   }
 }
