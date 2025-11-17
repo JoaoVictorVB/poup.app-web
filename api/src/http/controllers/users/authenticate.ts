@@ -19,16 +19,16 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 
     const token = await reply.jwtSign(
       {
-        id: user.id,
+        sub: user.id,
         name: user.name,
         email: user.email,
       },
       {
-        expiresIn: '30m', // Token expira em 30 minutos
+        expiresIn: '7d',
       }
     )
 
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000) // 30 minutos a partir de agora
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 dias
 
     return reply.status(200).send({ 
       token,
