@@ -7,7 +7,7 @@ interface LogEntry {
   userName?: string
   userId?: string
   description: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }
 
 export class Logger {
@@ -15,39 +15,39 @@ export class Logger {
 
   constructor(logFileName: string = 'application.log') {
     const logsDir = path.join(process.cwd(), 'logs')
-    
+
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true })
     }
-    
+
     this.logFilePath = path.join(logsDir, logFileName)
   }
 
   private formatLogEntry(entry: LogEntry): string {
     const { timestamp, eventType, userName, userId, description, details } = entry
-    
+
     let logMessage = `[${timestamp}] [${eventType}]`
-    
+
     if (userName) {
       logMessage += ` [User: ${userName}]`
     }
-    
+
     if (userId) {
       logMessage += ` [ID: ${userId}]`
     }
-    
+
     logMessage += ` - ${description}`
-    
+
     if (details && Object.keys(details).length > 0) {
       logMessage += ` | Details: ${JSON.stringify(details)}`
     }
-    
+
     return logMessage + '\n'
   }
 
   private writeLog(entry: LogEntry): void {
     const logMessage = this.formatLogEntry(entry)
-    
+
     try {
       fs.appendFileSync(this.logFilePath, logMessage, 'utf8')
     } catch (error) {
@@ -62,7 +62,7 @@ export class Logger {
       userName,
       userId,
       description: 'Novo usuário cadastrado',
-      details: { email }
+      details: { email },
     })
   }
 
@@ -73,7 +73,7 @@ export class Logger {
       userName,
       userId,
       description: 'Dados do usuário alterados',
-      details: { changes }
+      details: { changes },
     })
   }
 
@@ -83,7 +83,7 @@ export class Logger {
       eventType: 'PASSWORD_CHANGE',
       userName,
       userId,
-      description: 'Senha do usuário alterada'
+      description: 'Senha do usuário alterada',
     })
   }
 
@@ -94,7 +94,7 @@ export class Logger {
       userName,
       userId,
       description: 'Usuário excluído',
-      details: { email }
+      details: { email },
     })
   }
 
@@ -103,7 +103,7 @@ export class Logger {
       timestamp: new Date().toISOString(),
       eventType: 'AUTH_FAILURE',
       description: `Falha de autenticação para ${email}`,
-      details: { reason }
+      details: { reason },
     })
   }
 
@@ -114,7 +114,7 @@ export class Logger {
       userName,
       userId,
       description: '5 tentativas consecutivas de autenticação falharam - conta bloqueada',
-      details: { lockedUntil: lockedUntil.toISOString() }
+      details: { lockedUntil: lockedUntil.toISOString() },
     })
   }
 
@@ -124,7 +124,7 @@ export class Logger {
       eventType: 'AUTH_SUCCESS',
       userName,
       userId,
-      description: 'Autenticação bem-sucedida'
+      description: 'Autenticação bem-sucedida',
     })
   }
 
@@ -134,18 +134,23 @@ export class Logger {
       eventType: 'SUBSCRIPTION_CREATED',
       userName,
       userId,
-      description: `Nova assinatura criada: ${subscriptionName}`
+      description: `Nova assinatura criada: ${subscriptionName}`,
     })
   }
 
-  logSubscriptionUpdated(userName: string, userId: string, subscriptionName: string, changes: string[]): void {
+  logSubscriptionUpdated(
+    userName: string,
+    userId: string,
+    subscriptionName: string,
+    changes: string[]
+  ): void {
     this.writeLog({
       timestamp: new Date().toISOString(),
       eventType: 'SUBSCRIPTION_UPDATED',
       userName,
       userId,
       description: `Assinatura atualizada: ${subscriptionName}`,
-      details: { changes }
+      details: { changes },
     })
   }
 
@@ -155,7 +160,7 @@ export class Logger {
       eventType: 'SUBSCRIPTION_DELETED',
       userName,
       userId,
-      description: `Assinatura excluída: ${subscriptionName}`
+      description: `Assinatura excluída: ${subscriptionName}`,
     })
   }
 
@@ -163,7 +168,7 @@ export class Logger {
     this.writeLog({
       timestamp: new Date().toISOString(),
       eventType: 'CALENDAR_EVENT_CREATED',
-      description: `Novo evento de calendário criado: ${title}`
+      description: `Novo evento de calendário criado: ${title}`,
     })
   }
 
@@ -172,7 +177,7 @@ export class Logger {
       timestamp: new Date().toISOString(),
       eventType: 'CALENDAR_EVENT_UPDATED',
       description: `Evento de calendário atualizado: ${title}`,
-      details: { changes }
+      details: { changes },
     })
   }
 
@@ -180,7 +185,7 @@ export class Logger {
     this.writeLog({
       timestamp: new Date().toISOString(),
       eventType: 'CALENDAR_EVENT_DELETED',
-      description: `Evento de calendário excluído: ${title}`
+      description: `Evento de calendário excluído: ${title}`,
     })
   }
 }

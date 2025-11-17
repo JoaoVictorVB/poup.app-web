@@ -1,4 +1,7 @@
-import { CalendarEventsRepository, UpdateCalendarEventDTO } from '@/repositories/ICalendarRepository'
+import {
+  CalendarEventsRepository,
+  UpdateCalendarEventDTO,
+} from '@/repositories/ICalendarRepository'
 import { CalendarEvent } from '@prisma/client'
 import { logger } from '../../lib/logger'
 import { ResourceNotFoundError } from '../errors/resource-not-found-error'

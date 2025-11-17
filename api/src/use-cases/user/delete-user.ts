@@ -29,7 +29,10 @@ export class DeleteUserUseCase {
     const passwordMatches = await compare(password, user.password_hash)
 
     if (!passwordMatches) {
-      logger.logAuthenticationFailure(user.email, 'Senha incorreta na tentativa de exclusão de conta')
+      logger.logAuthenticationFailure(
+        user.email,
+        'Senha incorreta na tentativa de exclusão de conta'
+      )
       throw new InvalidCredentialsError('Senha incorreta')
     }
 

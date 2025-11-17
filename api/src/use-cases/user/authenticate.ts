@@ -33,25 +33,28 @@ export class AuthenticateUseCase {
 
   private async handleFailedLogin(user: User): Promise<void> {
     const newAttempts = user.login_attempts + 1
-    
+
     if (newAttempts >= this.MAX_LOGIN_ATTEMPTS) {
       const lockedUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000)
-      
+
       await this.usersRepository.update(user.id, {
         login_attempts: newAttempts,
         locked_until: lockedUntil,
       })
-      
+
       logger.logAccountLocked(user.name, user.id, lockedUntil)
-      
+
       throw new AccountLockedError(lockedUntil)
     } else {
       await this.usersRepository.update(user.id, {
         login_attempts: newAttempts,
       })
-      
-      logger.logAuthenticationFailure(user.email, `Tentativa ${newAttempts} de ${this.MAX_LOGIN_ATTEMPTS}`)
-      
+
+      logger.logAuthenticationFailure(
+        user.email,
+        `Tentativa ${newAttempts} de ${this.MAX_LOGIN_ATTEMPTS}`
+      )
+
       const remainingAttempts = this.MAX_LOGIN_ATTEMPTS - newAttempts
       throw new InvalidCredentialsError(
         `Credenciais inválidas. ${remainingAttempts} tentativa(s) restante(s).`
@@ -100,7 +103,13 @@ export class AuthenticateUseCase {
 
     logger.logAuthenticationSuccess(user.name, user.id)
 
-    const { password_hash, password_history, login_attempts, locked_until, ...userWithoutPassword } = user
+    const {
+      password_hash: _password_hash,
+      password_history: _password_history,
+      login_attempts: _login_attempts,
+      locked_until: _locked_until,
+      ...userWithoutPassword
+    } = user
 
     return {
       user: userWithoutPassword,

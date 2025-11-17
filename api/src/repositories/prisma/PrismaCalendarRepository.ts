@@ -4,7 +4,7 @@ import {
   CalendarEventsRepository,
   CreateCalendarEventDTO,
   FindCalendarEventQuery,
-  UpdateCalendarEventDTO
+  UpdateCalendarEventDTO,
 } from '../ICalendarRepository'
 
 export class PrismaCalendarEventsRepository implements CalendarEventsRepository {

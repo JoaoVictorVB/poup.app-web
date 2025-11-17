@@ -64,7 +64,13 @@ export class UpdateUserUseCase {
 
     logger.logUserUpdate(updatedUser.name, updatedUser.id, changes)
 
-    const { password_hash, password_history, login_attempts, locked_until, ...userWithoutPassword } = updatedUser
+    const {
+      password_hash: _password_hash,
+      password_history: _password_history,
+      login_attempts: _login_attempts,
+      locked_until: _locked_until,
+      ...userWithoutPassword
+    } = updatedUser
 
     return {
       user: userWithoutPassword,

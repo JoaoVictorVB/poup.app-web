@@ -1,10 +1,10 @@
 import { User } from '@prisma/client'
 import { prisma } from '../../lib/prisma'
 import {
-    AuthenticationQuery,
-    CreateUserDTO,
-    UpdateUserDTO,
-    UsersRepository
+  AuthenticationQuery,
+  CreateUserDTO,
+  UpdateUserDTO,
+  UsersRepository,
 } from '../IUserRepository'
 
 export class PrismaUsersRepository implements UsersRepository {

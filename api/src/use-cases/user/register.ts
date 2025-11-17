@@ -40,15 +40,18 @@ export class RegisterUseCase {
       return { valid: false, message: 'A senha deve conter pelo menos um número' }
     }
 
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      return { valid: false, message: 'A senha deve conter pelo menos um caractere especial (!@#$%^&*...)' }
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+      return {
+        valid: false,
+        message: 'A senha deve conter pelo menos um caractere especial (!@#$%^&*...)',
+      }
     }
 
     return { valid: true }
   }
 
   private async checkPasswordHistory(
-    password: string, 
+    password: string,
     passwordHistory: string | null
   ): Promise<boolean> {
     if (!passwordHistory) {
@@ -57,14 +60,14 @@ export class RegisterUseCase {
 
     try {
       const historyHashes: string[] = JSON.parse(passwordHistory)
-      
+
       for (const oldHash of historyHashes) {
         const isMatch = await compare(password, oldHash)
         if (isMatch) {
           return false
         }
       }
-      
+
       return true
     } catch {
       return true
@@ -76,7 +79,7 @@ export class RegisterUseCase {
     oldHistory: string | null
   ): Promise<string> {
     let historyArray: string[] = []
-    
+
     if (oldHistory) {
       try {
         historyArray = JSON.parse(oldHistory)
@@ -129,7 +132,13 @@ export class RegisterUseCase {
 
     logger.logUserRegistration(user.name, user.id, user.email)
 
-    const { password_hash: _, password_history: __, login_attempts: ___, locked_until: ____, ...userWithoutPassword } = user
+    const {
+      password_hash: _,
+      password_history: __,
+      login_attempts: ___,
+      locked_until: ____,
+      ...userWithoutPassword
+    } = user
 
     return {
       user: userWithoutPassword,

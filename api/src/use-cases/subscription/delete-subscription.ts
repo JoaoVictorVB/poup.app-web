@@ -15,10 +15,7 @@ export class DeleteSubscriptionUseCase {
     private usersRepository: UsersRepository
   ) {}
 
-  async execute({
-    subscriptionId,
-    userId,
-  }: DeleteSubscriptionUseCaseRequest): Promise<void> {
+  async execute({ subscriptionId, userId }: DeleteSubscriptionUseCaseRequest): Promise<void> {
     const existingSubscription = await this.subscriptionsRepository.findUnique({
       id: subscriptionId,
     })

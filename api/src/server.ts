@@ -47,9 +47,11 @@ app.register(authenticate)
 
 app.register(appRoutes)
 
-app.listen({
-  port: Number(process.env.PORT) || 3333,
-  host: '0.0.0.0',
-}).then(() => {
-  console.log('🚀 HTTP Server Running!')
-})
+app
+  .listen({
+    port: Number(process.env.PORT) || 3333,
+    host: '0.0.0.0',
+  })
+  .then(() => {
+    console.log('🚀 HTTP Server Running!')
+  })

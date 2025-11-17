@@ -18,15 +18,21 @@ declare module '@fastify/jwt' {
   }
 }
 
-export default fp(async function (fastify: FastifyInstance) {
-  fastify.decorate('authenticate', async function(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      await request.jwtVerify()
-    } catch (err) {
-      throw new UnauthorizedError('Token de autenticação inválido ou expirado')
-    }
-  })
-}, {
-  name: 'authenticate',
-  dependencies: ['@fastify/jwt']
-})
+export default fp(
+  async function (fastify: FastifyInstance) {
+    fastify.decorate(
+      'authenticate',
+      async function (request: FastifyRequest, _reply: FastifyReply) {
+        try {
+          await request.jwtVerify()
+        } catch {
+          throw new UnauthorizedError('Token de autenticação inválido ou expirado')
+        }
+      }
+    )
+  },
+  {
+    name: 'authenticate',
+    dependencies: ['@fastify/jwt'],
+  }
+)

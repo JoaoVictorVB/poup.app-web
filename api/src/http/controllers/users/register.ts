@@ -17,18 +17,18 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
     const registerUseCase = makeRegisterUseCase()
     const { user } = await registerUseCase.execute({ name, email, password })
 
-    return reply.status(201).send({ 
+    return reply.status(201).send({
       user,
-      message: 'Usuário registrado com sucesso!' 
+      message: 'Usuário registrado com sucesso!',
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return reply.status(400).send({ 
+      return reply.status(400).send({
         message: 'Dados inválidos',
-        errors: error.errors.map(err => ({
+        errors: error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
-        }))
+          message: err.message,
+        })),
       })
     }
 
