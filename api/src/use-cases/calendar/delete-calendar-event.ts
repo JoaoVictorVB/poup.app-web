@@ -1,4 +1,5 @@
 import { CalendarEventsRepository } from '@/repositories/ICalendarRepository'
+import { logger } from '../../lib/logger'
 import { ResourceNotFoundError } from '../errors/resource-not-found-error'
 
 interface DeleteCalendarEventUseCaseRequest {
@@ -16,6 +17,8 @@ export class DeleteCalendarEventUseCase {
     if (!existingEvent) {
       throw new ResourceNotFoundError('Event')
     }
+
+    logger.logCalendarEventDeleted(existingEvent.title)
 
     await this.calendarEventsRepository.delete(eventId)
   }
