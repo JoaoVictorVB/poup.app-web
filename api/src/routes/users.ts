@@ -6,6 +6,20 @@ import { makeGetUserProfileUseCase } from '@/use-cases/user/factories/make-get-u
 import { makeRegisterUseCase } from '@/use-cases/user/factories/make-register-use-case'
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { deleteUser } from '../http/controllers/users/delete-user'
+import { updatePassword } from '../http/controllers/users/update-password'
+import { updateUser } from '../http/controllers/users/update-user'
+
+// Rate limiter específico para autenticação (mais restritivo)
+const authRateLimitConfig = {
+  max: 5, // Apenas 5 tentativas
+  timeWindow: '1 minute',
+  errorResponseBuilder: () => ({
+    error: 'Too Many Authentication Attempts',
+    message: 'Muitas tentativas de login. Tente novamente em 1 minuto.',
+    statusCode: 429,
+  }),
+}
 
 export async function userRoutes(app: FastifyInstance) {
   app.post('/users', async (request, reply) => {
@@ -31,7 +45,9 @@ export async function userRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post('/sessions', async (request, reply) => {
+  app.post('/sessions', {
+    config: authRateLimitConfig,
+  }, async (request, reply) => {
     const loginSchema = z.object({
       email: z.string().email('Email inválido'),
       password: z.string().min(1, 'Senha é obrigatória'),
@@ -45,7 +61,7 @@ export async function userRoutes(app: FastifyInstance) {
 
       const token = app.jwt.sign(
         {
-          id: user.id,
+          sub: user.id,
           name: user.name,
           email: user.email,
         },
@@ -67,7 +83,7 @@ export async function userRoutes(app: FastifyInstance) {
   app.get('/me', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
-    const { id: userId } = request.user as { id: string, name: string, email: string }
+    const userId = request.user.sub
 
     try {
       const getUserProfileUseCase = makeGetUserProfileUseCase()
@@ -82,4 +98,16 @@ export async function userRoutes(app: FastifyInstance) {
       throw error
     }
   })
+
+  app.put('/me', {
+    preHandler: [app.authenticate],
+  }, updateUser)
+
+  app.put('/me/password', {
+    preHandler: [app.authenticate],
+  }, updatePassword)
+
+  app.delete('/me', {
+    preHandler: [app.authenticate],
+  }, deleteUser)
 }
