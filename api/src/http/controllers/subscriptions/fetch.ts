@@ -2,7 +2,7 @@ import { makeFetchUserSubscriptionsUseCase } from '@/use-cases/subscription/fact
 import { FastifyReply, FastifyRequest } from 'fastify'
 
 export async function fetch(request: FastifyRequest, reply: FastifyReply) {
-  const userId = (request.user as { id: string }).id
+  const userId = request.user.sub
 
   const fetchUserSubscriptionsUseCase = makeFetchUserSubscriptionsUseCase()
   const { subscriptions } = await fetchUserSubscriptionsUseCase.execute({ userId })

@@ -1,5 +1,7 @@
 import { SubscriptionsRepository } from '@/repositories/ISubscriptionRepository'
+import { UsersRepository } from '@/repositories/IUserRepository'
 import { Subscription } from '@prisma/client'
+import { logger } from '../../lib/logger'
 import { ValidationError } from '../errors/validation-error'
 
 interface CreateSubscriptionUseCaseRequest {
@@ -15,7 +17,10 @@ interface CreateSubscriptionUseCaseResponse {
 }
 
 export class CreateSubscriptionUseCase {
-  constructor(private subscriptionsRepository: SubscriptionsRepository) {}
+  constructor(
+    private subscriptionsRepository: SubscriptionsRepository,
+    private usersRepository: UsersRepository
+  ) {}
 
   async execute(
     data: CreateSubscriptionUseCaseRequest
@@ -32,6 +37,11 @@ export class CreateSubscriptionUseCase {
     }
 
     const subscription = await this.subscriptionsRepository.create(data)
+
+    const user = await this.usersRepository.findById(data.user_id)
+    if (user) {
+      logger.logSubscriptionCreated(user.name, user.id, subscription.name)
+    }
 
     return {
       subscription,

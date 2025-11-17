@@ -13,16 +13,14 @@ interface GetUserProfileUseCaseResponse {
 export class GetUserProfileUseCase {
   constructor(private usersRepository: UsersRepository) {}
 
-  async execute({
-    userId,
-  }: GetUserProfileUseCaseRequest): Promise<GetUserProfileUseCaseResponse> {
+  async execute({ userId }: GetUserProfileUseCaseRequest): Promise<GetUserProfileUseCaseResponse> {
     const user = await this.usersRepository.findById(userId)
 
     if (!user) {
       throw new ResourceNotFoundError('User')
     }
 
-    const { password_hash, ...userWithoutPassword } = user
+    const { password_hash: _password_hash, ...userWithoutPassword } = user
 
     return {
       user: userWithoutPassword,

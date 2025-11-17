@@ -1,27 +1,22 @@
 import { UsersRepository } from '@/repositories/IUserRepository'
-import { User } from '@prisma/client'
 import { compare, hash } from 'bcryptjs'
 import { logger } from '../../lib/logger'
-import { UserAlreadyExistsError } from '../errors/user-already-exists-error'
+import { InvalidCredentialsError } from '../errors/invalid-credentials-error'
+import { ResourceNotFoundError } from '../errors/resource-not-found-error'
 import { ValidationError } from '../errors/validation-error'
 
-interface RegisterUseCaseRequest {
-  name: string
-  email: string
-  password: string
+interface UpdatePasswordUseCaseRequest {
+  userId: string
+  currentPassword: string
+  newPassword: string
 }
 
-interface RegisterUseCaseResponse {
-  user: Omit<User, 'password_hash' | 'password_history' | 'login_attempts' | 'locked_until'>
+interface UpdatePasswordUseCaseResponse {
+  success: boolean
 }
 
-export class RegisterUseCase {
+export class UpdatePasswordUseCase {
   constructor(private usersRepository: UsersRepository) {}
-
-  private validateEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
 
   private validatePassword(password: string): { valid: boolean; message?: string } {
     if (password.length < 10) {
@@ -98,50 +93,51 @@ export class RegisterUseCase {
   }
 
   async execute({
-    name,
-    email,
-    password,
-  }: RegisterUseCaseRequest): Promise<RegisterUseCaseResponse> {
-    if (!this.validateEmail(email)) {
-      throw new ValidationError('Email inválido. Por favor, insira um email válido.')
+    userId,
+    currentPassword,
+    newPassword,
+  }: UpdatePasswordUseCaseRequest): Promise<UpdatePasswordUseCaseResponse> {
+    const user = await this.usersRepository.findUnique({ id: userId })
+
+    if (!user) {
+      throw new ResourceNotFoundError()
     }
 
-    const passwordValidation = this.validatePassword(password)
+    const currentPasswordMatches = await compare(currentPassword, user.password_hash)
+
+    if (!currentPasswordMatches) {
+      logger.logAuthenticationFailure(user.email, 'Senha atual incorreta na tentativa de alteração')
+      throw new InvalidCredentialsError('Senha atual incorreta')
+    }
+
+    const passwordValidation = this.validatePassword(newPassword)
     if (!passwordValidation.valid) {
       throw new ValidationError(passwordValidation.message!)
     }
 
-    const userExists = await this.usersRepository.findUnique({ email })
+    const canUsePassword = await this.checkPasswordHistory(newPassword, user.password_history)
 
-    if (userExists) {
-      throw new UserAlreadyExistsError()
+    if (!canUsePassword) {
+      throw new ValidationError(
+        'Esta senha já foi utilizada recentemente. Por favor, escolha uma senha diferente.'
+      )
     }
 
-    const password_hash = await hash(password, 8)
+    const newPasswordHash = await hash(newPassword, 8)
+    const updatedPasswordHistory = await this.updatePasswordHistory(
+      newPasswordHash,
+      user.password_history
+    )
 
-    const password_history = await this.updatePasswordHistory(password_hash, null)
-
-    const user = await this.usersRepository.create({
-      name,
-      email,
-      password_hash,
-      password_history,
-      login_attempts: 0,
-      locked_until: null,
+    await this.usersRepository.update(userId, {
+      password_hash: newPasswordHash,
+      password_history: updatedPasswordHistory,
     })
 
-    logger.logUserRegistration(user.name, user.id, user.email)
-
-    const {
-      password_hash: _,
-      password_history: __,
-      login_attempts: ___,
-      locked_until: ____,
-      ...userWithoutPassword
-    } = user
+    logger.logPasswordChange(user.name, user.id)
 
     return {
-      user: userWithoutPassword,
+      success: true,
     }
   }
 }

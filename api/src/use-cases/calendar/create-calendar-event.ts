@@ -1,5 +1,6 @@
 import { CalendarEventsRepository } from '@/repositories/ICalendarRepository'
 import { CalendarEvent } from '@prisma/client'
+import { logger } from '../../lib/logger'
 import { ValidationError } from '../errors/validation-error'
 
 interface CreateCalendarEventUseCaseRequest {
@@ -26,6 +27,8 @@ export class CreateCalendarEventUseCase {
     }
 
     const event = await this.calendarEventsRepository.create(data)
+
+    logger.logCalendarEventCreated(event.title)
 
     return {
       event,

@@ -4,7 +4,7 @@ import {
   CreateSubscriptionDTO,
   FindSubscriptionQuery,
   SubscriptionsRepository,
-  UpdateSubscriptionDTO
+  UpdateSubscriptionDTO,
 } from '../ISubscriptionRepository'
 
 export class PrismaSubscriptionsRepository implements SubscriptionsRepository {

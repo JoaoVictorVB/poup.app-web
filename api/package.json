@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "API for PoupApp - Subscription Management",
   "main": "src/server.ts",
+  "type": "module",
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
@@ -10,11 +11,16 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsup src --out-dir build",
     "start": "node build/server.js",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
   },
   "dependencies": {
     "@fastify/cors": "^8.0.0",
     "@fastify/jwt": "^7.0.0",
+    "@fastify/rate-limit": "^9.1.0",
     "@prisma/client": "^5.0.0",
     "bcryptjs": "^2.4.3",
     "fastify": "^4.0.0",
@@ -22,11 +28,19 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/bcryptjs": "^2.4.2",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
     "prisma": "^5.0.0",
     "tsup": "^7.0.0",
     "tsx": "^3.14.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.47.0"
   }
 }

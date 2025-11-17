@@ -7,10 +7,14 @@ interface ErrorResponse {
   error: string
   message: string
   statusCode: number
-  details?: any
+  details?: unknown
 }
 
-export function errorHandler(error: FastifyError | Error, request: FastifyRequest, reply: FastifyReply) {
+export function errorHandler(
+  error: FastifyError | Error,
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   console.error('Error occurred:', {
     message: error.message,
     stack: error.stack,
@@ -27,7 +31,7 @@ export function errorHandler(error: FastifyError | Error, request: FastifyReques
   }
 
   if (error instanceof ZodError) {
-    const formattedErrors = error.errors.map(err => ({
+    const formattedErrors = error.errors.map((err) => ({
       field: err.path.join('.'),
       message: err.message,
     }))
@@ -107,15 +111,12 @@ export function errorHandler(error: FastifyError | Error, request: FastifyReques
     } as ErrorResponse)
   }
 
-  const statusCode = 'statusCode' in error && typeof error.statusCode === 'number' 
-    ? error.statusCode 
-    : 500
+  const statusCode =
+    'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : 500
 
   return reply.status(statusCode).send({
     error: 'InternalServerError',
-    message: process.env.NODE_ENV === 'production' 
-      ? 'Erro interno do servidor' 
-      : error.message,
+    message: process.env.NODE_ENV === 'production' ? 'Erro interno do servidor' : error.message,
     statusCode,
   } as ErrorResponse)
 }

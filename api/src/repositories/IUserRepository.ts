@@ -28,4 +28,5 @@ export interface UsersRepository {
   findById(id: string): Promise<User | null>
   create(data: CreateUserDTO): Promise<User>
   update(userId: string, data: UpdateUserDTO): Promise<User>
+  delete(userId: string): Promise<void>
 }

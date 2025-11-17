@@ -19,18 +19,18 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 
     const token = await reply.jwtSign(
       {
-        id: user.id,
+        sub: user.id,
         name: user.name,
         email: user.email,
       },
       {
-        expiresIn: '30m', // Token expira em 30 minutos
+        expiresIn: '7d',
       }
     )
 
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000) // 30 minutos a partir de agora
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 dias
 
-    return reply.status(200).send({ 
+    return reply.status(200).send({
       token,
       user: {
         id: user.id,
@@ -38,16 +38,16 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
         email: user.email,
       },
       expiresAt,
-      message: 'Login realizado com sucesso!'
+      message: 'Login realizado com sucesso!',
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return reply.status(400).send({ 
+      return reply.status(400).send({
         message: 'Dados inválidos',
-        errors: error.errors.map(err => ({
+        errors: error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
-        }))
+          message: err.message,
+        })),
       })
     }
 

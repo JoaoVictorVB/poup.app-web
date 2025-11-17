@@ -1,5 +1,9 @@
-import { CalendarEventsRepository, UpdateCalendarEventDTO } from '@/repositories/ICalendarRepository'
+import {
+  CalendarEventsRepository,
+  UpdateCalendarEventDTO,
+} from '@/repositories/ICalendarRepository'
 import { CalendarEvent } from '@prisma/client'
+import { logger } from '../../lib/logger'
 import { ResourceNotFoundError } from '../errors/resource-not-found-error'
 import { ValidationError } from '../errors/validation-error'
 
@@ -37,6 +41,12 @@ export class UpdateCalendarEventUseCase {
     }
 
     const event = await this.calendarEventsRepository.update(eventId, data)
+
+    const changes: string[] = []
+    if (data.title) changes.push('title')
+    if (data.date) changes.push('date')
+    if (data.type) changes.push('type')
+    logger.logCalendarEventUpdated(event.title, changes)
 
     return {
       event,
