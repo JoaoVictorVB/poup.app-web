@@ -11,6 +11,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: poup_mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 'dev'
       MYSQL_DATABASE: 'poup'
@@ -30,6 +31,7 @@ services:
       context: ./api
       dockerfile: Dockerfile
     container_name: poup_api
+    restart: always
     ports:
       - "9777:3000"
     environment:
@@ -56,6 +58,7 @@ services:
       context: ./poup.app
       dockerfile: Dockerfile
     container_name: poup_frontend
+    restart: always
     ports:
       - "9776:3000"
     environment:
