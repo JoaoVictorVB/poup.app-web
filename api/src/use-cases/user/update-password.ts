@@ -35,15 +35,18 @@ export class UpdatePasswordUseCase {
       return { valid: false, message: 'A senha deve conter pelo menos um número' }
     }
 
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      return { valid: false, message: 'A senha deve conter pelo menos um caractere especial (!@#$%^&*...)' }
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+      return {
+        valid: false,
+        message: 'A senha deve conter pelo menos um caractere especial (!@#$%^&*...)',
+      }
     }
 
     return { valid: true }
   }
 
   private async checkPasswordHistory(
-    password: string, 
+    password: string,
     passwordHistory: string | null
   ): Promise<boolean> {
     if (!passwordHistory) {
@@ -52,14 +55,14 @@ export class UpdatePasswordUseCase {
 
     try {
       const historyHashes: string[] = JSON.parse(passwordHistory)
-      
+
       for (const oldHash of historyHashes) {
         const isMatch = await compare(password, oldHash)
         if (isMatch) {
           return false
         }
       }
-      
+
       return true
     } catch {
       return true
@@ -71,7 +74,7 @@ export class UpdatePasswordUseCase {
     oldHistory: string | null
   ): Promise<string> {
     let historyArray: string[] = []
-    
+
     if (oldHistory) {
       try {
         historyArray = JSON.parse(oldHistory)
@@ -113,13 +116,18 @@ export class UpdatePasswordUseCase {
     }
 
     const canUsePassword = await this.checkPasswordHistory(newPassword, user.password_history)
-    
+
     if (!canUsePassword) {
-      throw new ValidationError('Esta senha já foi utilizada recentemente. Por favor, escolha uma senha diferente.')
+      throw new ValidationError(
+        'Esta senha já foi utilizada recentemente. Por favor, escolha uma senha diferente.'
+      )
     }
 
     const newPasswordHash = await hash(newPassword, 8)
-    const updatedPasswordHistory = await this.updatePasswordHistory(newPasswordHash, user.password_history)
+    const updatedPasswordHistory = await this.updatePasswordHistory(
+      newPasswordHash,
+      user.password_history
+    )
 
     await this.usersRepository.update(userId, {
       password_hash: newPasswordHash,
