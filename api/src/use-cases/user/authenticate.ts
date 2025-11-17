@@ -1,6 +1,7 @@
 import { UsersRepository } from '@/repositories/IUserRepository'
 import { User } from '@prisma/client'
 import { compare } from 'bcryptjs'
+import { logger } from '../../lib/logger'
 import { AccountLockedError } from '../errors/account-locked-error'
 import { InvalidCredentialsError } from '../errors/invalid-credentials-error'
 import { ValidationError } from '../errors/validation-error'
@@ -41,11 +42,15 @@ export class AuthenticateUseCase {
         locked_until: lockedUntil,
       })
       
+      logger.logAccountLocked(user.name, user.id, lockedUntil)
+      
       throw new AccountLockedError(lockedUntil)
     } else {
       await this.usersRepository.update(user.id, {
         login_attempts: newAttempts,
       })
+      
+      logger.logAuthenticationFailure(user.email, `Tentativa ${newAttempts} de ${this.MAX_LOGIN_ATTEMPTS}`)
       
       const remainingAttempts = this.MAX_LOGIN_ATTEMPTS - newAttempts
       throw new InvalidCredentialsError(
@@ -76,6 +81,7 @@ export class AuthenticateUseCase {
     const user = await this.usersRepository.findUnique({ email })
 
     if (!user) {
+      logger.logAuthenticationFailure(email, 'Usuário não encontrado')
       throw new InvalidCredentialsError()
     }
 
@@ -91,6 +97,8 @@ export class AuthenticateUseCase {
     }
 
     await this.resetLoginAttempts(user.id)
+
+    logger.logAuthenticationSuccess(user.name, user.id)
 
     const { password_hash, password_history, login_attempts, locked_until, ...userWithoutPassword } = user
 
