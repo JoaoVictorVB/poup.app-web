@@ -10,7 +10,7 @@ export async function remove(request: FastifyRequest, reply: FastifyReply) {
   })
 
   const { id } = deleteSubscriptionParamsSchema.parse(request.params)
-  const userId = (request.user as { id: string }).id
+  const userId = request.user.sub
 
   try {
     const deleteSubscriptionUseCase = makeDeleteSubscriptionUseCase()
