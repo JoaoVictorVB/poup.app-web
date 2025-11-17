@@ -1,4 +1,6 @@
 import { SubscriptionsRepository } from '@/repositories/ISubscriptionRepository'
+import { UsersRepository } from '@/repositories/IUserRepository'
+import { logger } from '../../lib/logger'
 import { ForbiddenError } from '../errors/forbidden-error'
 import { ResourceNotFoundError } from '../errors/resource-not-found-error'
 
@@ -8,7 +10,10 @@ interface DeleteSubscriptionUseCaseRequest {
 }
 
 export class DeleteSubscriptionUseCase {
-  constructor(private subscriptionsRepository: SubscriptionsRepository) {}
+  constructor(
+    private subscriptionsRepository: SubscriptionsRepository,
+    private usersRepository: UsersRepository
+  ) {}
 
   async execute({
     subscriptionId,
@@ -24,6 +29,11 @@ export class DeleteSubscriptionUseCase {
 
     if (existingSubscription.user_id !== userId) {
       throw new ForbiddenError('You do not have permission to delete this subscription')
+    }
+
+    const user = await this.usersRepository.findById(userId)
+    if (user) {
+      logger.logSubscriptionDeleted(user.name, user.id, existingSubscription.name)
     }
 
     await this.subscriptionsRepository.delete(subscriptionId)

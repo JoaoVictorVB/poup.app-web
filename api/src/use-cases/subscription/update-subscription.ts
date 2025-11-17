@@ -1,5 +1,7 @@
 import { SubscriptionsRepository, UpdateSubscriptionDTO } from '@/repositories/ISubscriptionRepository'
+import { UsersRepository } from '@/repositories/IUserRepository'
 import { Subscription } from '@prisma/client'
+import { logger } from '../../lib/logger'
 import { ForbiddenError } from '../errors/forbidden-error'
 import { ResourceNotFoundError } from '../errors/resource-not-found-error'
 import { ValidationError } from '../errors/validation-error'
@@ -15,7 +17,10 @@ interface UpdateSubscriptionUseCaseResponse {
 }
 
 export class UpdateSubscriptionUseCase {
-  constructor(private subscriptionsRepository: SubscriptionsRepository) {}
+  constructor(
+    private subscriptionsRepository: SubscriptionsRepository,
+    private usersRepository: UsersRepository
+  ) {}
 
   async execute({
     subscriptionId,
@@ -48,6 +53,16 @@ export class UpdateSubscriptionUseCase {
     }
 
     const subscription = await this.subscriptionsRepository.update(subscriptionId, data)
+
+    const user = await this.usersRepository.findById(userId)
+    if (user) {
+      const changes: string[] = []
+      if (data.name) changes.push('name')
+      if (data.price) changes.push('price')
+      if (data.billing_cycle) changes.push('billing_cycle')
+      if (data.next_payment) changes.push('next_payment')
+      logger.logSubscriptionUpdated(user.name, user.id, subscription.name, changes)
+    }
 
     return {
       subscription,
