@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "API for PoupApp - Subscription Management",
   "main": "src/server.ts",
-  "type": "module",
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },

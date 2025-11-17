@@ -18,23 +18,28 @@ PoupApp é uma aplicação web que ajuda você a:
 
 ## ✨ Características
 
-- ✅ **Autenticação JWT** - Login seguro e persistente
+- ✅ **Autenticação JWT** - Login seguro e persistente com tokens de 7 dias
 - ✅ **CRUD Completo** - Criar, ler, atualizar e deletar assinaturas
 - ✅ **Cálculos Automáticos** - Gastos mensais e anuais calculados automaticamente
 - ✅ **Calendário Visual** - Veja seus pagamentos organizados por data
 - ✅ **Estatísticas Detalhadas** - Gráficos e análises de gastos
 - ✅ **Interface Responsiva** - Funciona em desktop, tablet e mobile
 - ✅ **TypeScript** - 100% tipado para melhor developer experience
+- ✅ **Segurança Avançada** - Rate limiting, bcrypt, proteção contra ataques
+- ✅ **Gerenciamento de Perfil** - Atualizar dados e trocar senha
+- ✅ **Logging Completo** - Rastreamento de todas as operações
 
 ## 🛠️ Tecnologias
 
 ### Backend
-- **Fastify** - Framework web rápido e eficiente
-- **Prisma** - ORM moderno para banco de dados
-- **MySQL** - Banco de dados relacional
-- **JWT** - Autenticação segura
+- **Fastify 4.x** - Framework web rápido e eficiente
+- **Prisma 5.x** - ORM moderno para banco de dados
+- **MySQL 8.0** - Banco de dados relacional
+- **@fastify/jwt** - Autenticação JWT segura
+- **bcryptjs** - Hash de senhas com salt
+- **@fastify/rate-limit** - Proteção contra brute force
 - **Zod** - Validação de schemas
-- **TypeScript** - Tipagem estática
+- **TypeScript 5.x** - Tipagem estática
 
 ### Frontend
 - **React 19** - Biblioteca UI moderna
@@ -62,9 +67,10 @@ cd poup.app-web
 # 2. Configure e inicie a API
 cd api
 cp .env.example .env
-docker-compose -f docker-compose.dev.yml up -d
+# Edite o .env com suas configurações
+docker-compose -f docker-compose.local.dev.yml up -d
 npm install
-npx prisma migrate dev
+npx prisma migrate deploy
 npm run dev
 
 # 3. Configure e inicie o Frontend (novo terminal)
@@ -89,12 +95,17 @@ npm run dev
 
 ## 📱 Funcionalidades
 
-### Autenticação
-- ✅ Registro de novos usuários
-- ✅ Login com JWT
+### Autenticação e Usuários
+- ✅ Registro de novos usuários com validação
+- ✅ Login com JWT (30 min de validade)
 - ✅ Logout
-- ✅ Token persistente
-- ✅ Rotas protegidas
+- ✅ Token persistente no localStorage
+- ✅ Rotas protegidas com middleware
+- ✅ Perfil do usuário (GET /me)
+- ✅ Atualizar dados do perfil (PUT /me)
+- ✅ Trocar senha com validação (PUT /me/password)
+- ✅ Deletar conta (DELETE /me)
+- ✅ Rate limiting anti-bruteforce (5 tentativas/min)
 
 ### Assinaturas
 - ✅ Listar todas as assinaturas
@@ -124,26 +135,36 @@ npm run dev
 ### API (.env)
 ```bash
 DATABASE_URL="mysql://root:dev@localhost:9003/poup"
-JWT_SECRET="poupapp-secret"
+JWT_SECRET="seu-secret-super-seguro-aqui"
 FRONTEND_URL="http://localhost:5173"
 PORT=3333
+NODE_ENV="development"
 ```
+
+**⚠️ IMPORTANTE:** Altere o `JWT_SECRET` para um valor aleatório e seguro em produção!
 
 ### Frontend (.env)
 ```bash
 VITE_API_URL=http://localhost:3333
 ```
 
+## 🔐 Segurança
+
+Este projeto implementa diversas práticas de segurança:
+
+- **Bcrypt** - Senhas hash com salt automático (8 rounds)
+- **JWT** - Tokens assinados com expiração de 7 dias
+- **Rate Limiting** - 100 req/min global, 5 req/min em autenticação
+- **Security Headers** - HSTS, CSP, X-Frame-Options, X-XSS-Protection
+- **Validação de Dados** - Zod em todas as entradas
+- **CORS** - Configurado para aceitar apenas frontend autorizado
+- **Password History** - Impede reutilização das últimas 3 senhas
+- **Account Locking** - Bloqueio após 5 tentativas falhas (10 min)
+.
+
 ## 📝 Licença
 
 Este projeto está sob a licença MIT.
-
-## 🙏 Agradecimentos
-
-- Fastify pela excelente documentação
-- Prisma pela ferramenta incrível
-- React team pelo framework
-- Comunidade open source
 
 ---
 
