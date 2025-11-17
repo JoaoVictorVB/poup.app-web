@@ -8,6 +8,16 @@ declare module 'fastify' {
   }
 }
 
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: {
+      sub: string
+      name: string
+      email: string
+    }
+  }
+}
+
 export default fp(async function (fastify: FastifyInstance) {
   fastify.decorate('authenticate', async function(request: FastifyRequest, reply: FastifyReply) {
     try {
