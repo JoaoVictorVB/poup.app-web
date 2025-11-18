@@ -10,7 +10,7 @@ const CalendarPageApi: React.FC<CalendarPageApiProps> = ({ subscriptions, loadin
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  
+
   const startDate = new Date(startOfMonth);
   const dayOfWeek = startOfMonth.getDay();
   const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -22,15 +22,18 @@ const CalendarPageApi: React.FC<CalendarPageApiProps> = ({ subscriptions, loadin
     return date;
   });
 
-  const subsByDate = subscriptions.reduce((acc, sub) => {
-    const date = new Date(sub.next_payment);
-    const dateKey = date.toDateString();
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(sub);
-    return acc;
-  }, {} as Record<string, Subscription[]>);
+  const subsByDate = subscriptions.reduce(
+    (acc, sub) => {
+      const date = new Date(sub.next_payment);
+      const dateKey = date.toDateString();
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(sub);
+      return acc;
+    },
+    {} as Record<string, Subscription[]>
+  );
 
   const goToPreviousMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -44,7 +47,7 @@ const CalendarPageApi: React.FC<CalendarPageApiProps> = ({ subscriptions, loadin
     setCurrentDate(new Date());
   };
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number = 0) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -90,7 +93,7 @@ const CalendarPageApi: React.FC<CalendarPageApiProps> = ({ subscriptions, loadin
 
       {/* Dias da semana */}
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => (
+        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((day) => (
           <div key={day} className="text-center font-semibold text-gray-600 py-2">
             {day}
           </div>
@@ -127,7 +130,7 @@ const CalendarPageApi: React.FC<CalendarPageApiProps> = ({ subscriptions, loadin
                 )}
               </div>
               <div className="space-y-1">
-                {subs.map(sub => (
+                {subs.map((sub) => (
                   <div
                     key={sub.id}
                     className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-md truncate hover:bg-blue-200 transition cursor-pointer"

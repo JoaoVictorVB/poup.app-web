@@ -49,7 +49,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchMode }) => {
       await onSignUp(name, email, password);
     } catch (err) {
       const appError = err as AppError;
-      
+
       if (appError.fieldErrors) {
         setFieldErrors(appError.fieldErrors);
       } else {
@@ -64,14 +64,29 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchMode }) => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
         <div className="flex justify-center mb-6">
-          <svg className="w-12 h-12 text-blue-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
-            <path d="M12 6C9.79 6 8 7.79 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 7.79 14.21 6 12 6ZM12 12C10.9 12 10 11.1 10 10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 11.1 13.1 12 12 12Z" fill="currentColor"/>
+          <svg
+            className="w-12 h-12 text-blue-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
+              fill="currentColor"
+            />
+            <path
+              d="M12 6C9.79 6 8 7.79 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 7.79 14.21 6 12 6ZM12 12C10.9 12 10 11.1 10 10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 11.1 13.1 12 12 12Z"
+              fill="currentColor"
+            />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Crie sua conta no poup.app</h2>
-        <p className="text-center text-gray-500 mb-8">Comece a organizar suas finanças hoje mesmo.</p>
-        
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
+          Crie sua conta no poup.app
+        </h2>
+        <p className="text-center text-gray-500 mb-8">
+          Comece a organizar suas finanças hoje mesmo.
+        </p>
+
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
             {error}
@@ -150,29 +165,39 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchMode }) => {
             {fieldErrors.password && (
               <p className="text-red-500 text-xs italic mt-1 mb-3">{fieldErrors.password}</p>
             )}
-            
+
             {/* Indicadores de força da senha */}
             {password && (
               <div className="mt-3 space-y-2">
                 <p className="text-xs font-semibold text-gray-600 mb-1">Requisitos da senha:</p>
                 <div className="space-y-1">
-                  <div className={`flex items-center text-xs ${passwordStrength.minLength ? 'text-green-600' : 'text-gray-400'}`}>
+                  <div
+                    className={`flex items-center text-xs ${passwordStrength.minLength ? 'text-green-600' : 'text-gray-400'}`}
+                  >
                     <span className="mr-2">{passwordStrength.minLength ? '✓' : '○'}</span>
                     Mínimo de 10 caracteres
                   </div>
-                  <div className={`flex items-center text-xs ${passwordStrength.hasUpperCase ? 'text-green-600' : 'text-gray-400'}`}>
+                  <div
+                    className={`flex items-center text-xs ${passwordStrength.hasUpperCase ? 'text-green-600' : 'text-gray-400'}`}
+                  >
                     <span className="mr-2">{passwordStrength.hasUpperCase ? '✓' : '○'}</span>
                     Pelo menos uma letra maiúscula
                   </div>
-                  <div className={`flex items-center text-xs ${passwordStrength.hasLowerCase ? 'text-green-600' : 'text-gray-400'}`}>
+                  <div
+                    className={`flex items-center text-xs ${passwordStrength.hasLowerCase ? 'text-green-600' : 'text-gray-400'}`}
+                  >
                     <span className="mr-2">{passwordStrength.hasLowerCase ? '✓' : '○'}</span>
                     Pelo menos uma letra minúscula
                   </div>
-                  <div className={`flex items-center text-xs ${passwordStrength.hasNumber ? 'text-green-600' : 'text-gray-400'}`}>
+                  <div
+                    className={`flex items-center text-xs ${passwordStrength.hasNumber ? 'text-green-600' : 'text-gray-400'}`}
+                  >
                     <span className="mr-2">{passwordStrength.hasNumber ? '✓' : '○'}</span>
                     Pelo menos um número
                   </div>
-                  <div className={`flex items-center text-xs ${passwordStrength.hasSpecialChar ? 'text-green-600' : 'text-gray-400'}`}>
+                  <div
+                    className={`flex items-center text-xs ${passwordStrength.hasSpecialChar ? 'text-green-600' : 'text-gray-400'}`}
+                  >
                     <span className="mr-2">{passwordStrength.hasSpecialChar ? '✓' : '○'}</span>
                     Pelo menos um caractere especial (!@#$%...)
                   </div>

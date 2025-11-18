@@ -21,10 +21,12 @@ export function useCalendar() {
     }
   }, []);
 
-  const createEvent = async (event: Omit<CalendarEvent, 'id' | 'created_at'>): Promise<CalendarEvent> => {
+  const createEvent = async (
+    event: Omit<CalendarEvent, 'id' | 'created_at'>
+  ): Promise<CalendarEvent> => {
     try {
       const newEvent = await calendarService.create(event);
-      setEvents(prev => [...prev, newEvent]);
+      setEvents((prev) => [...prev, newEvent]);
       return newEvent;
     } catch (err) {
       console.error('Erro ao criar evento:', err);
@@ -32,10 +34,13 @@ export function useCalendar() {
     }
   };
 
-  const updateEvent = async (id: string, event: Partial<Omit<CalendarEvent, 'id' | 'created_at'>>): Promise<CalendarEvent> => {
+  const updateEvent = async (
+    id: string,
+    event: Partial<Omit<CalendarEvent, 'id' | 'created_at'>>
+  ): Promise<CalendarEvent> => {
     try {
       const updatedEvent = await calendarService.update(id, event);
-      setEvents(prev => prev.map(e => e.id === id ? updatedEvent : e));
+      setEvents((prev) => prev.map((e) => (e.id === id ? updatedEvent : e)));
       return updatedEvent;
     } catch (err) {
       console.error('Erro ao atualizar evento:', err);
@@ -46,7 +51,7 @@ export function useCalendar() {
   const deleteEvent = async (id: string): Promise<void> => {
     try {
       await calendarService.delete(id);
-      setEvents(prev => prev.filter(e => e.id !== id));
+      setEvents((prev) => prev.filter((e) => e.id !== id));
     } catch (err) {
       console.error('Erro ao deletar evento:', err);
       throw err;

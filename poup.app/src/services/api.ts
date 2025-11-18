@@ -28,11 +28,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const appError = handleApiError(error);
-    
+
     if (isAuthError(appError)) {
       localStorage.removeItem('@PoupApp:token');
     }
-    
+
     return Promise.reject(appError);
   }
 );
@@ -60,12 +60,17 @@ export const subscriptionService = {
     return data.subscriptions;
   },
 
-  async create(subscription: Omit<Subscription, 'id' | 'created_at' | 'user_id'>): Promise<Subscription> {
+  async create(
+    subscription: Omit<Subscription, 'id' | 'created_at' | 'user_id'>
+  ): Promise<Subscription> {
     const { data } = await api.post<SubscriptionResponse>('/subscriptions', subscription);
     return data.subscription;
   },
 
-  async update(id: string, subscription: Partial<Omit<Subscription, 'id' | 'created_at' | 'user_id'>>): Promise<Subscription> {
+  async update(
+    id: string,
+    subscription: Partial<Omit<Subscription, 'id' | 'created_at' | 'user_id'>>
+  ): Promise<Subscription> {
     const { data } = await api.put<SubscriptionResponse>(`/subscriptions/${id}`, subscription);
     return data.subscription;
   },
@@ -86,7 +91,10 @@ export const calendarService = {
     return data.event;
   },
 
-  async update(id: string, event: Partial<Omit<CalendarEvent, 'id' | 'created_at'>>): Promise<CalendarEvent> {
+  async update(
+    id: string,
+    event: Partial<Omit<CalendarEvent, 'id' | 'created_at'>>
+  ): Promise<CalendarEvent> {
     const { data } = await api.put<CalendarEventResponse>(`/calendar/${id}`, event);
     return data.event;
   },

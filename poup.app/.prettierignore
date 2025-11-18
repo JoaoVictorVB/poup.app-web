@@ -1,0 +1,29 @@
+# Build outputs
+dist
+build
+coverage
+
+# Dependencies
+node_modules
+
+# Logs
+*.log
+logs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
