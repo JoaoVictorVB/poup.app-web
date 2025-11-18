@@ -20,21 +20,63 @@ model User {
   locked_until     DateTime?
   created_at       DateTime       @default(now())
   subscriptions    Subscription[]
+  products         Product[]
+  payments         Payment[]
 
   @@map("users")
 }
 
 model Subscription {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   name          String
   price         Float
   billing_cycle String // "monthly" | "yearly"
   next_payment  DateTime
-  created_at    DateTime @default(now())
+  status        String    @default("pending") // "paid", "pending", "cancelled"
+  created_at    DateTime  @default(now())
   user_id       String
-  user          User     @relation(fields: [user_id], references: [id])
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  payments      Payment[]
 
   @@map("subscriptions")
+}
+
+model Product {
+  id                String    @id @default(uuid())
+  name              String
+  category          String // "food", "transport", "entertainment", "health", "shopping", "other"
+  total_price       Float // Preço total da compra
+  installments      Int       @default(1) // Número de parcelas
+  paid_installments Int       @default(0) // Parcelas já pagas
+  installment_value Float // Valor de cada parcela
+  purchase_date     DateTime  @default(now())
+  next_payment      DateTime? // Próxima parcela a vencer
+  description       String?   @db.Text
+  status            String    @default("pending") // "paid", "pending", "partial" (parcialmente pago)
+  created_at        DateTime  @default(now())
+  user_id           String
+  user              User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  payments          Payment[]
+
+  @@map("products")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  amount          Float
+  payment_date    DateTime      @default(now())
+  payment_method  String // "credit_card", "debit_card", "pix", "cash", "bank_transfer"
+  status          String        @default("paid") // "paid", "pending", "cancelled"
+  notes           String?       @db.Text
+  created_at      DateTime      @default(now())
+  user_id         String
+  user            User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  subscription_id String?
+  subscription    Subscription? @relation(fields: [subscription_id], references: [id], onDelete: SetNull)
+  product_id      String?
+  product         Product?      @relation(fields: [product_id], references: [id], onDelete: SetNull)
+
+  @@map("payments")
 }
 
 model CalendarEvent {
