@@ -9,8 +9,10 @@ if (rootElement) {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <App />
-    </React.StrictMode>,
+    </React.StrictMode>
   );
 } else {
-  console.error("Falha ao encontrar o elemento root. Verifique se seu public/index.html possui um elemento com id='root'");
+  console.error(
+    "Falha ao encontrar o elemento root. Verifique se seu public/index.html possui um elemento com id='root'"
+  );
 }

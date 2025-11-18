@@ -7,18 +7,16 @@ interface ErrorMessageProps {
   type?: 'error' | 'warning';
 }
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({ 
-  message, 
-  onClose,
-  type = 'error' 
-}) => {
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onClose, type = 'error' }) => {
   const bgColor = type === 'error' ? 'bg-red-50' : 'bg-yellow-50';
   const borderColor = type === 'error' ? 'border-red-200' : 'border-yellow-200';
   const textColor = type === 'error' ? 'text-red-800' : 'text-yellow-800';
   const iconColor = type === 'error' ? 'text-red-500' : 'text-yellow-500';
 
   return (
-    <div className={`${bgColor} ${borderColor} ${textColor} px-4 py-3 rounded-lg border flex items-start justify-between gap-3 mb-4`}>
+    <div
+      className={`${bgColor} ${borderColor} ${textColor} px-4 py-3 rounded-lg border flex items-start justify-between gap-3 mb-4`}
+    >
       <div className="flex items-start gap-3">
         <AlertCircle className={`${iconColor} flex-shrink-0 mt-0.5`} size={20} />
         <p className="text-sm font-medium">{message}</p>
@@ -43,11 +41,7 @@ interface FieldErrorProps {
 export const FieldError: React.FC<FieldErrorProps> = ({ message }) => {
   if (!message) return null;
 
-  return (
-    <p className="text-red-500 text-xs italic mt-1">
-      {message}
-    </p>
-  );
+  return <p className="text-red-500 text-xs italic mt-1">{message}</p>;
 };
 
 interface FormFieldProps {
@@ -87,10 +81,7 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <div className="mb-4">
-      <label
-        className="block text-gray-700 text-sm font-bold mb-2"
-        htmlFor={id}
-      >
+      <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={id}>
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>

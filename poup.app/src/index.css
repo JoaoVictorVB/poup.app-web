@@ -1,10 +1,9 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Diretivas do Tailwind CSS.
   Durante o processo de build, o Tailwind substituirá
   essas diretivas pelos estilos de utilitário correspondentes.
 */
-
 
 /* Você pode adicionar estilos globais personalizados aqui, se necessário.
   Por exemplo, para o corpo da página:

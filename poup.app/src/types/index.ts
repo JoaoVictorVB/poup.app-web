@@ -3,7 +3,12 @@
 /**
  * Define as categorias possíveis para uma assinatura.
  */
-export type SubscriptionCategory = 'Entretenimento' | 'Produtividade' | 'Tecnologia' | 'Serviços em Nuvem' | 'Outro';
+export type SubscriptionCategory =
+  | 'Entretenimento'
+  | 'Produtividade'
+  | 'Tecnologia'
+  | 'Serviços em Nuvem'
+  | 'Outro';
 
 /**
  * Define as moedas suportadas pela aplicação.

@@ -1,60 +1,50 @@
-import {
-  ChevronDown,
-  CreditCard,
-  DollarSign,
-  Filter,
-  Plus,
-  Search,
-  TrendingUp,
-} from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { ChevronDown, Filter, Package, Plus, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import ProductCard from '../components/shared/ProductCard';
 import StatsCard from '../components/shared/StatsCard';
-import SubscriptionCard from '../components/shared/SubscriptionCard';
-import type { Subscription } from '../interfaces';
+import type { Product } from '../interfaces';
 
-interface SubscriptionsPageApiProps {
-  subscriptions: Subscription[];
+interface ProductsPageProps {
+  products: Product[];
   loading: boolean;
   onAdd: () => void;
-  onEdit: (sub: Subscription) => void;
+  onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
-  onPay?: (sub: Subscription) => void;
+  onPay: (product: Product) => void;
 }
 
-const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
-  subscriptions,
+export default function ProductsPage({
+  products,
   loading,
   onAdd,
   onEdit,
   onDelete,
   onPay,
-}) => {
+}: ProductsPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'price' | 'date'>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [filterCycle, setFilterCycle] = useState<'all' | 'monthly' | 'yearly'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'price' | 'date'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [filterCategory, setFilterCategory] = useState<'all' | Product['category']>('all');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  let filteredSubscriptions = subscriptions.filter((sub) =>
-    sub.name.toLowerCase().includes(searchTerm.toLowerCase())
+  let filteredProducts = products.filter((prod) =>
+    prod.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (filterCycle !== 'all') {
-    filteredSubscriptions = filteredSubscriptions.filter(
-      (sub) => sub.billing_cycle === filterCycle
-    );
+  if (filterCategory !== 'all') {
+    filteredProducts = filteredProducts.filter((prod) => prod.category === filterCategory);
   }
 
-  filteredSubscriptions = [...filteredSubscriptions].sort((a, b) => {
+  filteredProducts = [...filteredProducts].sort((a, b) => {
     let comparison = 0;
 
     if (sortBy === 'name') {
       comparison = a.name.localeCompare(b.name);
     } else if (sortBy === 'price') {
-      comparison = a.price - b.price;
+      comparison = a.total_price - b.total_price;
     } else if (sortBy === 'date') {
-      comparison = new Date(a.next_payment).getTime() - new Date(b.next_payment).getTime();
+      comparison = new Date(a.purchase_date).getTime() - new Date(b.purchase_date).getTime();
     }
 
     return sortOrder === 'asc' ? comparison : -comparison;
@@ -78,22 +68,8 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
     };
   }, [showSortMenu, showFilterMenu]);
 
-  const monthlyTotal = subscriptions.reduce((total, sub) => {
-    const monthlyPrice = sub.billing_cycle === 'yearly' ? sub.price / 12 : sub.price;
-    return total + monthlyPrice;
-  }, 0);
-
-  const yearlyTotal = subscriptions.reduce((total, sub) => {
-    const yearlyPrice = sub.billing_cycle === 'yearly' ? sub.price : sub.price * 12;
-    return total + yearlyPrice;
-  }, 0);
-
-  const formatCurrency = (value: number = 0) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const totalSpent = products.reduce((total, prod) => total + prod.total_price, 0);
+  const totalItems = products.reduce((total, prod) => total + prod.installments, 0);
 
   if (loading) {
     return (
@@ -111,24 +87,26 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
       {/* Cards de resumo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
-          title="Total de Assinaturas"
-          value={subscriptions.length.toString()}
-          icon={CreditCard}
+          title="Total de Produtos"
+          value={products.length}
+          icon={Package}
           color="blue"
           delay={0}
         />
         <StatsCard
-          title="Gasto Mensal"
-          value={formatCurrency(monthlyTotal)}
-          icon={DollarSign}
-          color="green"
+          title="Itens Comprados"
+          value={totalItems}
+          icon={Package}
+          color="purple"
           delay={0.1}
         />
         <StatsCard
-          title="Gasto Anual"
-          value={formatCurrency(yearlyTotal)}
-          icon={TrendingUp}
-          color="purple"
+          title="Total Gasto"
+          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+            totalSpent
+          )}
+          icon={Package}
+          color="orange"
           delay={0.2}
         />
       </div>
@@ -142,13 +120,13 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
               className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold px-6 py-3 rounded-xl flex items-center justify-center space-x-2 hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
             >
               <Plus size={20} />
-              <span>Nova Assinatura</span>
+              <span>Novo Produto</span>
             </button>
-            {filterCycle !== 'all' && (
+            {filterCategory !== 'all' && (
               <div className="flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-medium">
-                <span>{filterCycle === 'monthly' ? 'Mensais' : 'Anuais'}</span>
+                <span>{filterCategory}</span>
                 <button
-                  onClick={() => setFilterCycle('all')}
+                  onClick={() => setFilterCategory('all')}
                   className="hover:text-blue-900 font-bold text-lg leading-none"
                   title="Remover filtro"
                 >
@@ -239,7 +217,7 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
                     setShowFilterMenu(!showFilterMenu);
                     setShowSortMenu(false);
                   }}
-                  className={`p-3 rounded-xl transition-all shadow-md hover:shadow-lg ${filterCycle !== 'all' ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white' : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'}`}
+                  className={`p-3 rounded-xl transition-all shadow-md hover:shadow-lg ${filterCategory !== 'all' ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white' : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'}`}
                   title="Filtrar"
                 >
                   <Filter size={20} />
@@ -248,30 +226,66 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-glow border border-gray-200 py-2 z-10 overflow-hidden">
                     <button
                       onClick={() => {
-                        setFilterCycle('all');
+                        setFilterCategory('all');
                         setShowFilterMenu(false);
                       }}
-                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCycle === 'all' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCategory === 'all' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
                     >
                       Todas
                     </button>
                     <button
                       onClick={() => {
-                        setFilterCycle('monthly');
+                        setFilterCategory('food');
                         setShowFilterMenu(false);
                       }}
-                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCycle === 'monthly' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCategory === 'food' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
                     >
-                      Mensais
+                      Alimentação
                     </button>
                     <button
                       onClick={() => {
-                        setFilterCycle('yearly');
+                        setFilterCategory('transport');
                         setShowFilterMenu(false);
                       }}
-                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCycle === 'yearly' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCategory === 'transport' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
                     >
-                      Anuais
+                      Transporte
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterCategory('entertainment');
+                        setShowFilterMenu(false);
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCategory === 'entertainment' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
+                    >
+                      Entretenimento
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterCategory('health');
+                        setShowFilterMenu(false);
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCategory === 'health' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
+                    >
+                      Saúde
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterCategory('shopping');
+                        setShowFilterMenu(false);
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCategory === 'shopping' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
+                    >
+                      Compras
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterCategory('other');
+                        setShowFilterMenu(false);
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 transition-colors ${filterCategory === 'other' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-medium'}`}
+                    >
+                      Outros
                     </button>
                   </div>
                 )}
@@ -281,20 +295,20 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
         </div>
       </div>
 
-      {/* Lista de assinaturas */}
-      {filteredSubscriptions.length === 0 ? (
+      {/* Lista de produtos */}
+      {filteredProducts.length === 0 ? (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft p-12 text-center">
           <div className="max-w-md mx-auto">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CreditCard size={32} className="text-gray-400" />
+              <Package size={32} className="text-gray-400" />
             </div>
             <p className="text-gray-500 text-lg mb-2">
-              {searchTerm ? 'Nenhuma assinatura encontrada' : 'Nenhuma assinatura cadastrada'}
+              {searchTerm ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
             </p>
             <p className="text-gray-400 text-sm mb-6">
               {searchTerm
                 ? 'Tente ajustar sua pesquisa'
-                : 'Comece adicionando sua primeira assinatura'}
+                : 'Comece adicionando seu primeiro produto'}
             </p>
             {!searchTerm && (
               <button
@@ -302,17 +316,17 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
                 className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
               >
                 <Plus size={20} />
-                Adicionar Assinatura
+                Adicionar Produto
               </button>
             )}
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredSubscriptions.map((sub, index) => (
-            <SubscriptionCard
-              key={sub.id}
-              subscription={sub}
+          {filteredProducts.map((product, index) => (
+            <ProductCard
+              key={product.id}
+              product={product}
               onEdit={onEdit}
               onDelete={onDelete}
               onPay={onPay}
@@ -323,6 +337,4 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
       )}
     </div>
   );
-};
-
-export default SubscriptionsPageApi;
+}

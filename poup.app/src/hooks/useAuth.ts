@@ -10,20 +10,21 @@ export function useAuth() {
   useEffect(() => {
     const token = localStorage.getItem('@PoupApp:token');
     const tokenExpiry = localStorage.getItem('@PoupApp:tokenExpiry');
-    
+
     if (token && tokenExpiry) {
       const expiryDate = new Date(tokenExpiry);
       const now = new Date();
-      
+
       if (now >= expiryDate) {
         localStorage.removeItem('@PoupApp:token');
         localStorage.removeItem('@PoupApp:tokenExpiry');
         setLoading(false);
         return;
       }
-      
-      authService.getProfile()
-        .then(user => setUser(user))
+
+      authService
+        .getProfile()
+        .then((user) => setUser(user))
         .catch(() => {
           localStorage.removeItem('@PoupApp:token');
           localStorage.removeItem('@PoupApp:tokenExpiry');
@@ -38,13 +39,13 @@ export function useAuth() {
     const response = await authService.signIn(email, password);
     localStorage.setItem('@PoupApp:token', response.token);
     localStorage.setItem('@PoupApp:tokenExpiry', response.expiresAt);
-    
+
     setUser(response.user);
   };
 
   const signUp = async (name: string, email: string, password: string): Promise<void> => {
     await authService.signUp(name, email, password);
-    
+
     await signIn(email, password);
   };
 

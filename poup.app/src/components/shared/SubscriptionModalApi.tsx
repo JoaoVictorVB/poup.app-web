@@ -7,15 +7,18 @@ import { ErrorMessage, FormField } from './FormComponents';
 interface SubscriptionModalApiProps {
   onClose: () => void;
   onSave: (sub: Omit<Subscription, 'id' | 'created_at' | 'user_id'>) => Promise<void>;
-  onUpdate: (id: string, sub: Partial<Omit<Subscription, 'id' | 'created_at' | 'user_id'>>) => Promise<void>;
+  onUpdate: (
+    id: string,
+    sub: Partial<Omit<Subscription, 'id' | 'created_at' | 'user_id'>>
+  ) => Promise<void>;
   editingSubscription: Subscription | null;
 }
 
-const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({ 
-  onClose, 
-  onSave, 
-  onUpdate, 
-  editingSubscription 
+const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
+  onClose,
+  onSave,
+  onUpdate,
+  editingSubscription,
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -40,7 +43,7 @@ const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: name === 'price' ? parseFloat(value) : value,
     }));
@@ -55,10 +58,11 @@ const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
     try {
       const nextPaymentDate = new Date(formData.next_payment);
       nextPaymentDate.setHours(12, 0, 0, 0);
-      
+
       const dataToSubmit = {
         ...formData,
         next_payment: nextPaymentDate.toISOString(),
+        status: 'pending' as const,
       };
 
       if (editingSubscription) {
@@ -69,11 +73,11 @@ const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
       onClose();
     } catch (err) {
       const appError = err as AppError;
-      
+
       if (appError.fieldErrors) {
         setFieldErrors(appError.fieldErrors);
       }
-      
+
       setError(appError.userMessage || 'Erro ao salvar assinatura');
     } finally {
       setLoading(false);
@@ -93,12 +97,7 @@ const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <ErrorMessage 
-              message={error} 
-              onClose={() => setError('')}
-            />
-          )}
+          {error && <ErrorMessage message={error} onClose={() => setError('')} />}
 
           <FormField
             label="Nome da Assinatura"
@@ -125,7 +124,7 @@ const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
               required
               disabled={loading}
             />
-            
+
             <FormField
               label="Ciclo de Pagamento"
               id="billing_cycle"
