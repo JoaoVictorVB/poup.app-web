@@ -1,5 +1,7 @@
 import type { Payment } from '@prisma/client'
 import type { IPaymentRepository } from '../../repositories/IPaymentRepository'
+import type { IProductRepository } from '../../repositories/IProductRepository'
+import type { SubscriptionsRepository } from '../../repositories/ISubscriptionRepository'
 
 interface CreatePaymentUseCaseRequest {
   amount: number
@@ -17,7 +19,11 @@ interface CreatePaymentUseCaseResponse {
 }
 
 export class CreatePaymentUseCase {
-  constructor(private paymentRepository: IPaymentRepository) {}
+  constructor(
+    private paymentRepository: IPaymentRepository,
+    private subscriptionRepository: SubscriptionsRepository,
+    private productRepository: IProductRepository
+  ) {}
 
   async execute({
     amount,
@@ -49,6 +55,50 @@ export class CreatePaymentUseCase {
         },
       }),
     })
+
+    // Atualizar subscription se o pagamento for para uma assinatura e estiver pago
+    if (subscription_id && status === 'paid') {
+      const subscription = await this.subscriptionRepository.findUnique({ id: subscription_id })
+      if (subscription) {
+        const currentNextPayment = new Date(subscription.next_payment)
+        const newNextPayment = new Date(currentNextPayment)
+
+        // Adicionar um mês ou um ano dependendo do ciclo
+        if (subscription.billing_cycle === 'monthly') {
+          newNextPayment.setMonth(newNextPayment.getMonth() + 1)
+        } else {
+          newNextPayment.setFullYear(newNextPayment.getFullYear() + 1)
+        }
+
+        await this.subscriptionRepository.update(subscription_id, {
+          status: 'paid',
+          next_payment: newNextPayment,
+        })
+      }
+    }
+
+    // Atualizar product se o pagamento for para um produto e estiver pago
+    if (product_id && status === 'paid') {
+      const product = await this.productRepository.findById(product_id)
+      if (product) {
+        const paidInstallments = product.paid_installments + 1
+        const newStatus = paidInstallments >= product.installments ? 'paid' : 'partial'
+
+        // Calcular próxima parcela
+        let newNextPayment = null
+        if (paidInstallments < product.installments && product.next_payment) {
+          const currentNextPayment = new Date(product.next_payment)
+          newNextPayment = new Date(currentNextPayment)
+          newNextPayment.setMonth(newNextPayment.getMonth() + 1)
+        }
+
+        await this.productRepository.update(product_id, {
+          paid_installments: paidInstallments,
+          status: newStatus,
+          next_payment: newNextPayment,
+        })
+      }
+    }
 
     return { payment }
   }

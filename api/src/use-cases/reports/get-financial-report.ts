@@ -142,6 +142,67 @@ export class GetFinancialReportUseCase {
       {} as Record<string, number>
     )
 
+    const subscriptionPaymentsByCategory = await prisma.payment.groupBy({
+      by: ['subscription_id'],
+      where: {
+        user_id,
+        status: 'paid',
+        subscription_id: { not: null },
+      },
+      _sum: {
+        amount: true,
+      },
+    })
+
+    const subscriptionIds = subscriptionPaymentsByCategory
+      .map((p) => p.subscription_id)
+      .filter(Boolean) as string[]
+    const subscriptionsData = await prisma.subscription.findMany({
+      where: {
+        id: { in: subscriptionIds },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    })
+
+    const subscriptionCategoryMap = subscriptionsData.reduce(
+      (acc, s) => {
+        const nameLower = s.name.toLowerCase()
+        let category = 'subscriptions'
+        if (
+          nameLower.includes('netflix') ||
+          nameLower.includes('spotify') ||
+          nameLower.includes('youtube') ||
+          nameLower.includes('amazon') ||
+          nameLower.includes('hbo') ||
+          nameLower.includes('disney') ||
+          nameLower.includes('prime')
+        ) {
+          category = 'entertainment'
+        } else if (
+          nameLower.includes('academia') ||
+          nameLower.includes('fitness') ||
+          nameLower.includes('gym')
+        ) {
+          category = 'health'
+        }
+        acc[s.id] = category
+        return acc
+      },
+      {} as Record<string, string>
+    )
+
+    // Adicionar gastos das assinaturas ao spending_by_category
+    subscriptionPaymentsByCategory.forEach((item) => {
+      if (item.subscription_id) {
+        const category = subscriptionCategoryMap[item.subscription_id] || 'subscriptions'
+        spending_by_category[category] =
+          (spending_by_category[category] || 0) + (item._sum.amount || 0)
+      }
+    })
+
     console.log('📂 Spending by category:', spending_by_category)
     console.log('📦 Payments by status:', payments_by_status)
 
