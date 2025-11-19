@@ -88,6 +88,41 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
     return total + yearlyPrice;
   }, 0);
 
+  // Estatísticas de pagamento
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  // Em dia: status paid e próximo pagamento no futuro
+  const paidCount = subscriptions.filter((sub) => {
+    if (sub.status !== 'paid') return false;
+    return new Date(sub.next_payment) > now;
+  }).length;
+
+  // Vencem este mês: next_payment é neste mês e ainda não foi pago
+  const dueThisMonth = subscriptions.filter((sub) => {
+    if (sub.status === 'paid') return false;
+    const nextPayment = new Date(sub.next_payment);
+    return nextPayment.getMonth() === currentMonth && nextPayment.getFullYear() === currentYear;
+  }).length;
+
+  // Atrasadas: next_payment já passou e não foi pago
+  const overdue = subscriptions.filter((sub) => {
+    if (sub.status === 'paid') return false;
+    return new Date(sub.next_payment) < now;
+  }).length;
+
+  // Gasto previsto para este mês (apenas o que vence este mês)
+  const expectedMonthlySpending = subscriptions.reduce((total, sub) => {
+    const nextPayment = new Date(sub.next_payment);
+    const isThisMonth =
+      nextPayment.getMonth() === currentMonth && nextPayment.getFullYear() === currentYear;
+    if (isThisMonth && sub.status !== 'paid') {
+      return total + sub.price;
+    }
+    return total;
+  }, 0);
+
   const formatCurrency = (value: number = 0) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -109,7 +144,7 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
   return (
     <div className="space-y-6">
       {/* Cards de resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <StatsCard
           title="Total de Assinaturas"
           value={subscriptions.length.toString()}
@@ -118,18 +153,50 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
           delay={0}
         />
         <StatsCard
-          title="Gasto Mensal"
-          value={formatCurrency(monthlyTotal)}
+          title="✓ Em Dia"
+          value={paidCount.toString()}
           icon={DollarSign}
           color="green"
+          delay={0.05}
+        />
+        <StatsCard
+          title="⏰ Vencem Este Mês"
+          value={dueThisMonth.toString()}
+          icon={TrendingUp}
+          color="yellow"
           delay={0.1}
         />
         <StatsCard
-          title="Gasto Anual"
-          value={formatCurrency(yearlyTotal)}
+          title="! Atrasadas"
+          value={overdue.toString()}
+          icon={TrendingUp}
+          color="red"
+          delay={0.15}
+        />
+        <StatsCard
+          title="💰 Previsto Este Mês"
+          value={formatCurrency(expectedMonthlySpending)}
           icon={TrendingUp}
           color="purple"
           delay={0.2}
+        />
+      </div>
+
+      {/* Yearly Total Card - Separate Row */}
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StatsCard
+          title="Gasto Mensal Médio"
+          value={formatCurrency(monthlyTotal)}
+          icon={DollarSign}
+          color="purple"
+          delay={0.25}
+        />
+        <StatsCard
+          title="Gasto Anual Estimado"
+          value={formatCurrency(yearlyTotal)}
+          icon={TrendingUp}
+          color="orange"
+          delay={0.3}
         />
       </div>
 
