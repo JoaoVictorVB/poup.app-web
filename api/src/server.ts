@@ -4,7 +4,9 @@ import rateLimit from '@fastify/rate-limit'
 import fastify from 'fastify'
 import { appRoutes } from './http/routes'
 import { errorHandler } from './lib/errorHandler'
+import { getIDSStats } from './lib/ids'
 import authenticate from './plugins/authenticate'
+import idsPlugin from './plugins/ids'
 
 const app = fastify({
   logger: process.env.NODE_ENV === 'development',
@@ -43,9 +45,18 @@ app.register(jwt, {
   },
 })
 
+app.register(idsPlugin)
+
 app.register(authenticate)
 
 app.register(appRoutes)
+
+setInterval(() => {
+  const stats = getIDSStats()
+  if (stats.blockedIPs > 0 || stats.highRiskIPs > 0) {
+    console.log('🛡️ IDS Stats:', stats)
+  }
+}, 60000)
 
 app
   .listen({
