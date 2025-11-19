@@ -63,6 +63,20 @@ const categoryLabels = {
 export default function ProductCard({ product, onEdit, onDelete, onPay, index }: ProductCardProps) {
   const colors = categoryColors[product.category];
 
+  // Verificar status de pagamento
+  const now = new Date();
+  const nextPayment = product.next_payment ? new Date(product.next_payment) : null;
+
+  const isFullyPaid = product.status === 'paid';
+  const isOverdue = nextPayment && nextPayment < now && product.status !== 'paid';
+  const isDueThisMonth =
+    nextPayment &&
+    nextPayment.getMonth() === now.getMonth() &&
+    nextPayment.getFullYear() === now.getFullYear() &&
+    product.status !== 'paid';
+
+  const progressPercent = (product.paid_installments / product.installments) * 100;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -74,14 +88,37 @@ export default function ProductCard({ product, onEdit, onDelete, onPay, index }:
       <div
         className={cn(
           'relative overflow-hidden rounded-2xl border-2 shadow-soft hover:shadow-xl transition-all duration-300',
-          colors.border
+          colors.border,
+          isFullyPaid && 'ring-4 ring-green-300 ring-opacity-50',
+          isOverdue && 'ring-4 ring-red-300 ring-opacity-50'
         )}
       >
+        {/* Badges de status */}
+        {(isFullyPaid || isOverdue || isDueThisMonth) && (
+          <div className="relative z-10 px-4 pt-3">
+            {isFullyPaid && (
+              <div className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 w-fit">
+                <span>✓</span> TOTALMENTE PAGO
+              </div>
+            )}
+            {isOverdue && !isFullyPaid && (
+              <div className="bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-pulse w-fit">
+                <span>!</span> PARCELA ATRASADA
+              </div>
+            )}
+            {isDueThisMonth && !isOverdue && !isFullyPaid && (
+              <div className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 w-fit">
+                <span>⏰</span> VENCE ESTE MÊS
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Background gradient */}
         <div className={cn('absolute inset-0 bg-gradient-to-br opacity-50', colors.bg)} />
 
         {/* Content */}
-        <div className="relative p-6">
+        <div className={cn('relative p-6', (isFullyPaid || isOverdue || isDueThisMonth) && 'pt-3')}>
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -125,12 +162,34 @@ export default function ProductCard({ product, onEdit, onDelete, onPay, index }:
             </div>
 
             {product.installments > 1 && (
-              <div className="flex items-baseline justify-between">
-                <span className="text-sm font-medium text-gray-600">Parcelas</span>
-                <span className="text-lg font-semibold text-gray-700">
-                  {product.paid_installments}/{product.installments}x de{' '}
-                  {formatCurrency(product.installment_value)}
-                </span>
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm font-medium text-gray-600">Parcelas</span>
+                  <span className="text-lg font-semibold text-gray-700">
+                    {product.paid_installments}/{product.installments}x de{' '}
+                    {formatCurrency(product.installment_value)}
+                  </span>
+                </div>
+
+                {/* Barra de progresso */}
+                <div className="relative">
+                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full transition-all duration-500 rounded-full',
+                        progressPercent === 100
+                          ? 'bg-gradient-to-r from-green-400 to-green-600'
+                          : progressPercent > 50
+                            ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
+                            : 'bg-gradient-to-r from-red-400 to-red-600'
+                      )}
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <span className="absolute right-0 -top-5 text-xs font-bold text-gray-700">
+                    {progressPercent.toFixed(0)}%
+                  </span>
+                </div>
               </div>
             )}
 

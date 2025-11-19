@@ -35,6 +35,8 @@ export default function PaymentModal({
   const [subscriptionId, setSubscriptionId] = useState('');
   const [productId, setProductId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -51,8 +53,45 @@ export default function PaymentModal({
     }
   }, [preselectedSubscription, preselectedProduct]);
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Validar valor
+    const amountValue = parseFloat(amount);
+    if (!amount || isNaN(amountValue) || amountValue <= 0) {
+      newErrors.amount = 'Valor deve ser maior que zero';
+    } else if (amountValue > 100000) {
+      newErrors.amount = 'Valor não pode ser maior que R$ 100.000';
+    }
+
+    // Validar data
+    if (!paymentDate) {
+      newErrors.paymentDate = 'Data de pagamento é obrigatória';
+    } else {
+      const dateObj = new Date(paymentDate);
+      if (isNaN(dateObj.getTime())) {
+        newErrors.paymentDate = 'Data inválida';
+      }
+    }
+
+    // Validar relação (subscription ou product)
+    if (!subscriptionId && !productId) {
+      newErrors.relation = 'Selecione uma assinatura ou produto';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+
+    if (!validateForm()) {
+      setErrorMessage('Por favor, corrija os erros no formulário');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -89,6 +128,20 @@ export default function PaymentModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-start gap-2">
+              <span className="text-lg">⚠️</span>
+              <span className="text-sm">{errorMessage}</span>
+            </div>
+          )}
+
+          {errors.relation && (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-xl flex items-start gap-2">
+              <span className="text-lg">⚠️</span>
+              <span className="text-sm">{errors.relation}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
             <input
@@ -96,10 +149,18 @@ export default function PaymentModal({
               step="0.01"
               min="0"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => {
+                setAmount(e.target.value);
+                if (errors.amount) setErrors((prev) => ({ ...prev, amount: '' }));
+              }}
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                errors.amount
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
               required
             />
+            {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
           </div>
 
           <div>
@@ -109,10 +170,20 @@ export default function PaymentModal({
             <input
               type="date"
               value={paymentDate}
-              onChange={(e) => setPaymentDate(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => {
+                setPaymentDate(e.target.value);
+                if (errors.paymentDate) setErrors((prev) => ({ ...prev, paymentDate: '' }));
+              }}
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                errors.paymentDate
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
               required
             />
+            {errors.paymentDate && (
+              <p className="text-red-500 text-sm mt-1">{errors.paymentDate}</p>
+            )}
           </div>
 
           <div>

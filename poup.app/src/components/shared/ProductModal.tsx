@@ -34,6 +34,8 @@ export default function ProductModal({
   const [purchaseDate, setPurchaseDate] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errorMessage, setErrorMessage] = useState('');
 
   const installmentValue =
     totalPrice && installments ? parseFloat(totalPrice) / parseInt(installments) : 0;
@@ -52,8 +54,61 @@ export default function ProductModal({
     }
   }, [editingProduct]);
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Validar nome
+    if (!name || name.trim().length === 0) {
+      newErrors.name = 'Nome é obrigatório';
+    } else if (name.length < 2) {
+      newErrors.name = 'Nome deve ter pelo menos 2 caracteres';
+    }
+
+    // Validar preço
+    const price = parseFloat(totalPrice);
+    if (!totalPrice || isNaN(price) || price <= 0) {
+      newErrors.totalPrice = 'Valor total deve ser maior que zero';
+    } else if (price > 100000) {
+      newErrors.totalPrice = 'Valor não pode ser maior que R$ 100.000';
+    }
+
+    // Validar parcelas
+    const numInstallments = parseInt(installments);
+    if (!installments || isNaN(numInstallments) || numInstallments < 1) {
+      newErrors.installments = 'Número de parcelas inválido';
+    } else if (numInstallments > 48) {
+      newErrors.installments = 'Máximo de 48 parcelas';
+    }
+
+    // Validar data de compra
+    if (!purchaseDate) {
+      newErrors.purchaseDate = 'Data de compra é obrigatória';
+    } else {
+      const purchaseDateObj = new Date(purchaseDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (isNaN(purchaseDateObj.getTime())) {
+        newErrors.purchaseDate = 'Data inválida';
+      } else if (purchaseDateObj > today) {
+        newErrors.purchaseDate = 'Data não pode ser no futuro';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+
+    // Validar antes de enviar
+    if (!validateForm()) {
+      setErrorMessage('Por favor, corrija os erros no formulário');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -112,15 +167,30 @@ export default function ProductModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-start gap-2">
+              <span className="text-lg">⚠️</span>
+              <span className="text-sm">{errorMessage}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Nome do Produto</label>
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+              }}
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                errors.name
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
               required
             />
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
 
           <div>
@@ -149,10 +219,20 @@ export default function ProductModal({
                 step="0.01"
                 min="0"
                 value={totalPrice}
-                onChange={(e) => setTotalPrice(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setTotalPrice(e.target.value);
+                  if (errors.totalPrice) setErrors((prev) => ({ ...prev, totalPrice: '' }));
+                }}
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                  errors.totalPrice
+                    ? 'border-red-300 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-blue-500'
+                }`}
                 required
               />
+              {errors.totalPrice && (
+                <p className="text-red-500 text-sm mt-1">{errors.totalPrice}</p>
+              )}
             </div>
 
             <div>
@@ -162,10 +242,20 @@ export default function ProductModal({
                 min="1"
                 max="48"
                 value={installments}
-                onChange={(e) => setInstallments(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setInstallments(e.target.value);
+                  if (errors.installments) setErrors((prev) => ({ ...prev, installments: '' }));
+                }}
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                  errors.installments
+                    ? 'border-red-300 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-blue-500'
+                }`}
                 required
               />
+              {errors.installments && (
+                <p className="text-red-500 text-sm mt-1">{errors.installments}</p>
+              )}
             </div>
           </div>
 
@@ -185,10 +275,20 @@ export default function ProductModal({
             <input
               type="date"
               value={purchaseDate}
-              onChange={(e) => setPurchaseDate(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => {
+                setPurchaseDate(e.target.value);
+                if (errors.purchaseDate) setErrors((prev) => ({ ...prev, purchaseDate: '' }));
+              }}
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                errors.purchaseDate
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
               required
             />
+            {errors.purchaseDate && (
+              <p className="text-red-500 text-sm mt-1">{errors.purchaseDate}</p>
+            )}
           </div>
 
           <div>
