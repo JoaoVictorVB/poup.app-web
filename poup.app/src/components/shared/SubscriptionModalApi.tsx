@@ -47,13 +47,64 @@ const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
       ...prev,
       [name]: name === 'price' ? parseFloat(value) : value,
     }));
+
+    // Limpar erro do campo quando usuário começar a digitar
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Validar nome
+    if (!formData.name || formData.name.trim().length === 0) {
+      errors.name = 'Nome é obrigatório';
+    } else if (formData.name.length < 2) {
+      errors.name = 'Nome deve ter pelo menos 2 caracteres';
+    }
+
+    // Validar preço
+    if (!formData.price || formData.price <= 0) {
+      errors.price = 'Preço deve ser maior que zero';
+    } else if (formData.price > 10000) {
+      errors.price = 'Preço não pode ser maior que R$ 10.000';
+    }
+
+    // Validar data de pagamento
+    if (!formData.next_payment) {
+      errors.next_payment = 'Data de pagamento é obrigatória';
+    } else {
+      const paymentDate = new Date(formData.next_payment);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (isNaN(paymentDate.getTime())) {
+        errors.next_payment = 'Data inválida';
+      } else if (paymentDate < today) {
+        errors.next_payment = 'Data não pode ser no passado';
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
-    setFieldErrors({});
+
+    // Validar antes de enviar
+    if (!validateForm()) {
+      setError('Por favor, corrija os erros no formulário');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const nextPaymentDate = new Date(formData.next_payment);
@@ -62,7 +113,7 @@ const SubscriptionModalApi: React.FC<SubscriptionModalApiProps> = ({
       const dataToSubmit = {
         ...formData,
         next_payment: nextPaymentDate.toISOString(),
-        status: 'pending' as const,
+        status: editingSubscription?.status || ('pending' as const),
       };
 
       if (editingSubscription) {

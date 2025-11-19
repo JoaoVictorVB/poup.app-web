@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { useFinancialReport } from '../hooks/useFinancialReport';
 import type { Subscription } from '../interfaces';
 
@@ -114,7 +113,9 @@ const StatsPageApi: React.FC<StatsPageApiProps> = ({ subscriptions }) => {
                   ? 'Saúde'
                   : category === 'shopping'
                     ? 'Compras'
-                    : 'Outros',
+                    : category === 'subscriptions'
+                      ? 'Assinaturas'
+                      : 'Outros',
         value: amount,
       }));
   }, [report]);
@@ -210,147 +211,231 @@ const StatsPageApi: React.FC<StatsPageApiProps> = ({ subscriptions }) => {
         </div>
       </div>
 
-      {/* Gráficos de Divisão */}
+      {/* Análise de Gastos */}
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Análise de Gastos</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Gráfico de Gastos por Categoria */}
+          {/* Gastos por Categoria */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="font-semibold text-lg mb-4 text-center">Gastos por Categoria</h3>
+            <h3 className="font-semibold text-lg mb-4">Gastos por Categoria</h3>
             {error ? (
-              <div className="h-[300px] flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-red-500 mb-2">Erro ao carregar dados</p>
-                  <p className="text-sm text-gray-500">{error}</p>
-                </div>
+              <div className="text-center py-8">
+                <p className="text-red-500 mb-2">Erro ao carregar dados</p>
+                <p className="text-sm text-gray-500">{error}</p>
               </div>
             ) : spendingByCategory.length > 0 ? (
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={spendingByCategory}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {spendingByCategory.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                {spendingByCategory.map((item, index) => {
+                  const total = spendingByCategory.reduce((sum, cat) => sum + cat.value, 0);
+                  const percentage = ((item.value / total) * 100).toFixed(1);
+                  return (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-700">{item.name}</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {formatCurrency(item.value)} ({percentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${percentage}%`,
+                            backgroundColor: COLORS[index % COLORS.length],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="pt-4 border-t mt-4">
+                  <div className="flex justify-between items-center font-bold text-lg">
+                    <span>Total</span>
+                    <span className="text-blue-600">
+                      {formatCurrency(spendingByCategory.reduce((sum, cat) => sum + cat.value, 0))}
+                    </span>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500">
-                {reportLoading ? 'Carregando...' : 'Sem dados para exibir'}
+              <div className="text-center py-12">
+                {reportLoading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                    <p className="text-gray-500">Carregando dados...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-gray-500">Nenhum pagamento registrado ainda</p>
+                    <p className="text-sm text-gray-400">
+                      Registre pagamentos para produtos ou assinaturas para ver os gastos por
+                      categoria
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Gráfico de Pagamentos por Método */}
+          {/* Pagamentos por Método */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="font-semibold text-lg mb-4 text-center">Pagamentos por Método</h3>
+            <h3 className="font-semibold text-lg mb-4">Pagamentos por Método</h3>
             {paymentsByMethod.length > 0 ? (
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={paymentsByMethod}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
-                      outerRadius={100}
-                      fill="#82ca9d"
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {paymentsByMethod.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                {paymentsByMethod.map((item, index) => {
+                  const total = paymentsByMethod.reduce((sum, method) => sum + method.value, 0);
+                  const percentage = ((item.value / total) * 100).toFixed(1);
+                  return (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-700">{item.name}</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {formatCurrency(item.value)} ({percentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${percentage}%`,
+                            backgroundColor: COLORS[(index + 2) % COLORS.length],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="pt-4 border-t mt-4">
+                  <div className="flex justify-between items-center font-bold text-lg">
+                    <span>Total</span>
+                    <span className="text-green-600">
+                      {formatCurrency(
+                        paymentsByMethod.reduce((sum, method) => sum + method.value, 0)
+                      )}
+                    </span>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500">
-                {reportLoading ? 'Carregando...' : 'Sem dados para exibir'}
+              <div className="text-center py-12">
+                {reportLoading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                    <p className="text-gray-500">Carregando dados...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-gray-500">Nenhum pagamento registrado</p>
+                    <p className="text-sm text-gray-400">
+                      Clique no botão "💵 Registrar Pagamento" nas assinaturas ou produtos
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Gráfico de Quantidade por Ciclo */}
+          {/* Quantidade por Ciclo */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="font-semibold text-lg mb-4 text-center">
-              Quantidade por Ciclo de Pagamento
-            </h3>
+            <h3 className="font-semibold text-lg mb-4">Distribuição por Ciclo de Pagamento</h3>
             {billingCycleData.length > 0 ? (
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={billingCycleData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {billingCycleData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                {billingCycleData.map((item, index) => {
+                  const total = billingCycleData.reduce((sum, cycle) => sum + cycle.value, 0);
+                  const percentage = ((item.value / total) * 100).toFixed(1);
+                  return (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-700">{item.name}</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {item.value} assinatura{item.value !== 1 ? 's' : ''} ({percentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${percentage}%`,
+                            backgroundColor: COLORS[(index + 4) % COLORS.length],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500">
-                Sem dados para exibir
+              <div className="text-center py-12">
+                <div className="space-y-2">
+                  <p className="text-gray-500">Nenhuma assinatura cadastrada</p>
+                  <p className="text-sm text-gray-400">
+                    Adicione assinaturas para ver a distribuição por ciclo
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Gráfico de Pagamentos por Status */}
+          {/* Pagamentos por Status */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="font-semibold text-lg mb-4 text-center">Pagamentos por Status</h3>
+            <h3 className="font-semibold text-lg mb-4">Pagamentos por Status</h3>
             {paymentsByStatus.length > 0 ? (
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={paymentsByStatus}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
-                      outerRadius={100}
-                      fill="#ffc658"
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {paymentsByStatus.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                {paymentsByStatus.map((item, index) => {
+                  const total = paymentsByStatus.reduce((sum, status) => sum + status.value, 0);
+                  const percentage = ((item.value / total) * 100).toFixed(1);
+                  const statusColors: Record<string, string> = {
+                    Pago: '#10B981',
+                    Pendente: '#F59E0B',
+                    Cancelado: '#EF4444',
+                  };
+                  return (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-700">{item.name}</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {formatCurrency(item.value)} ({percentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${percentage}%`,
+                            backgroundColor:
+                              statusColors[item.name] || COLORS[index % COLORS.length],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="pt-4 border-t mt-4">
+                  <div className="flex justify-between items-center font-bold text-lg">
+                    <span>Total</span>
+                    <span className="text-purple-600">
+                      {formatCurrency(
+                        paymentsByStatus.reduce((sum, status) => sum + status.value, 0)
+                      )}
+                    </span>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500">
-                {reportLoading ? 'Carregando...' : 'Sem dados para exibir'}
+              <div className="text-center py-12">
+                {reportLoading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                    <p className="text-gray-500">Carregando dados...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-gray-500">Nenhum pagamento no sistema</p>
+                    <p className="text-sm text-gray-400">
+                      Registre pagamentos para ver a distribuição por status
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -1,6 +1,7 @@
 import { UsersRepository } from '@/repositories/IUserRepository'
 import { User } from '@prisma/client'
 import { compare } from 'bcryptjs'
+import { logFailedLogin } from '../../lib/ids'
 import { logger } from '../../lib/logger'
 import { AccountLockedError } from '../errors/account-locked-error'
 import { InvalidCredentialsError } from '../errors/invalid-credentials-error'
@@ -9,6 +10,7 @@ import { ValidationError } from '../errors/validation-error'
 interface AuthenticateUseCaseRequest {
   email: string
   password: string
+  ip?: string
 }
 
 interface AuthenticateUseCaseResponse {
@@ -31,8 +33,13 @@ export class AuthenticateUseCase {
     return new Date() < lockedUntil
   }
 
-  private async handleFailedLogin(user: User): Promise<void> {
+  private async handleFailedLogin(user: User, ip?: string): Promise<void> {
     const newAttempts = user.login_attempts + 1
+
+    // Log no IDS
+    if (ip) {
+      await logFailedLogin(ip, user.email)
+    }
 
     if (newAttempts >= this.MAX_LOGIN_ATTEMPTS) {
       const lockedUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000)
@@ -72,6 +79,7 @@ export class AuthenticateUseCase {
   async execute({
     email,
     password,
+    ip,
   }: AuthenticateUseCaseRequest): Promise<AuthenticateUseCaseResponse> {
     if (!this.validateEmail(email)) {
       throw new ValidationError('Email inválido. Por favor, insira um email válido.')
@@ -84,6 +92,10 @@ export class AuthenticateUseCase {
     const user = await this.usersRepository.findUnique({ email })
 
     if (!user) {
+      // Log tentativa de login com email inexistente
+      if (ip) {
+        await logFailedLogin(ip, email)
+      }
       logger.logAuthenticationFailure(email, 'Usuário não encontrado')
       throw new InvalidCredentialsError()
     }
@@ -95,7 +107,7 @@ export class AuthenticateUseCase {
     const passwordMatches = await compare(password, user.password_hash)
 
     if (!passwordMatches) {
-      await this.handleFailedLogin(user)
+      await this.handleFailedLogin(user, ip)
       throw new InvalidCredentialsError()
     }
 

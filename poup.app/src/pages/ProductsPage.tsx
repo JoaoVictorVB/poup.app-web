@@ -71,6 +71,43 @@ export default function ProductsPage({
   const totalSpent = products.reduce((total, prod) => total + prod.total_price, 0);
   const totalItems = products.reduce((total, prod) => total + prod.installments, 0);
 
+  // Estatísticas de pagamento
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const fullyPaid = products.filter((prod) => prod.status === 'paid').length;
+
+  const dueThisMonth = products.filter((prod) => {
+    if (prod.status === 'paid' || !prod.next_payment) return false;
+    const nextPayment = new Date(prod.next_payment);
+    return nextPayment.getMonth() === currentMonth && nextPayment.getFullYear() === currentYear;
+  }).length;
+
+  const overdue = products.filter((prod) => {
+    if (prod.status === 'paid' || !prod.next_payment) return false;
+    return new Date(prod.next_payment) < now;
+  }).length;
+
+  // Gasto previsto para este mês (parcelas que vencem este mês)
+  const expectedMonthlySpending = products.reduce((total, prod) => {
+    if (!prod.next_payment || prod.status === 'paid') return total;
+    const nextPayment = new Date(prod.next_payment);
+    const isThisMonth =
+      nextPayment.getMonth() === currentMonth && nextPayment.getFullYear() === currentYear;
+    if (isThisMonth) {
+      return total + prod.installment_value;
+    }
+    return total;
+  }, 0);
+
+  const formatCurrency = (value: number = 0) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -84,8 +121,8 @@ export default function ProductsPage({
 
   return (
     <div className="space-y-6">
-      {/* Cards de resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Cards de resumo - Estatísticas de pagamento */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <StatsCard
           title="Total de Produtos"
           value={products.length}
@@ -94,20 +131,44 @@ export default function ProductsPage({
           delay={0}
         />
         <StatsCard
+          title="✓ Totalmente Pagos"
+          value={fullyPaid}
+          icon={Package}
+          color="green"
+          delay={0.05}
+        />
+        <StatsCard
+          title="⏰ Vencem Este Mês"
+          value={dueThisMonth}
+          icon={Package}
+          color="yellow"
+          delay={0.1}
+        />
+        <StatsCard title="! Atrasadas" value={overdue} icon={Package} color="red" delay={0.15} />
+        <StatsCard
+          title="💰 Previsto Este Mês"
+          value={formatCurrency(expectedMonthlySpending)}
+          icon={Package}
+          color="purple"
+          delay={0.2}
+        />
+      </div>
+
+      {/* Cards de totais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StatsCard
           title="Itens Comprados"
           value={totalItems}
           icon={Package}
           color="purple"
-          delay={0.1}
+          delay={0.25}
         />
         <StatsCard
           title="Total Gasto"
-          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-            totalSpent
-          )}
+          value={formatCurrency(totalSpent)}
           icon={Package}
           color="orange"
-          delay={0.2}
+          delay={0.3}
         />
       </div>
 

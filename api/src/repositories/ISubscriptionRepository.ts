@@ -13,6 +13,7 @@ export interface UpdateSubscriptionDTO {
   price?: number
   billing_cycle?: 'monthly' | 'yearly'
   next_payment?: Date
+  status?: 'paid' | 'pending' | 'cancelled'
 }
 
 export interface FindSubscriptionQuery {

@@ -36,7 +36,7 @@ export const useFinancialReport = (startDate?: Date, endDate?: Date) => {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('@PoupApp:token');
     console.log('🔑 Token check:', token ? 'Token exists' : 'No token found');
 
     if (token) {

@@ -10,7 +10,7 @@ interface StatsCardProps {
     value: number;
     label: string;
   };
-  color?: 'blue' | 'green' | 'purple' | 'orange';
+  color?: 'blue' | 'green' | 'purple' | 'orange' | 'yellow' | 'red';
   delay?: number;
 }
 
@@ -34,6 +34,16 @@ const colorClasses = {
     bg: 'from-orange-500 to-orange-600',
     icon: 'bg-orange-100 text-orange-600',
     trend: 'text-orange-600',
+  },
+  yellow: {
+    bg: 'from-yellow-500 to-yellow-600',
+    icon: 'bg-yellow-100 text-yellow-600',
+    trend: 'text-yellow-600',
+  },
+  red: {
+    bg: 'from-red-500 to-red-600',
+    icon: 'bg-red-100 text-red-600',
+    trend: 'text-red-600',
   },
 };
 
