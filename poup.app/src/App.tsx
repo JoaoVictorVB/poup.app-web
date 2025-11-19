@@ -1,11 +1,11 @@
 import {
-    BarChart2,
-    Calendar,
-    DollarSign,
-    Home,
-    LayoutDashboard,
-    Package,
-    User,
+  BarChart2,
+  Calendar,
+  DollarSign,
+  Home,
+  LayoutDashboard,
+  Package,
+  User,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
