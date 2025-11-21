@@ -1,7 +1,7 @@
 # Análise de Risco - Poup.App
 ## Gerência de Risco Simplificada (GRS)
 
-**Data da Análise:** 17 de Novembro de 2025  
+**Data da Análise:** 21 de Novembro de 2025  
 **Versão:** 1.0  
 **Responsável:** Equipe de Segurança Poup.App
 
@@ -432,7 +432,7 @@
 
 ### 📊 **NOVO: Sistema IDS/IPS Implementado**
 
-**Data de Implementação:** 18 de Novembro de 2025
+**Data de Implementação:** 21 de Novembro de 2025
 
 **Funcionalidades:**
 - ✅ Detecção automática de SQL Injection
