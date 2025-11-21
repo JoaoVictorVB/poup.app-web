@@ -160,7 +160,10 @@ Este projeto implementa diversas práticas de segurança:
 - **CORS** - Configurado para aceitar apenas frontend autorizado
 - **Password History** - Impede reutilização das últimas 3 senhas
 - **Account Locking** - Bloqueio após 5 tentativas falhas (10 min)
-.
+
+Para mais detalhes sobre segurança, consulte:
+- 📋 [**PROJECT_EVALUATION.md**](./PROJECT_EVALUATION.md) - Avaliação completa do projeto com storytelling, características, testes e vulnerabilidades
+- 🛡️ [**RISK_ANALYSIS.md**](./RISK_ANALYSIS.md) - Análise de riscos e gerência de segurança
 
 ## 📝 Licença
 
