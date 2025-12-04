@@ -1,29 +1,51 @@
 import { Eye, EyeOff, LogIn } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import type { AppError } from '../../utils/errorMapping';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onSwitchMode: () => void;
+  onForgotPassword: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchMode }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchMode, onForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [captchaValue, setCaptchaValue] = useState<string | null>(null);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+  const showCaptcha = loginAttempts >= 3;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (showCaptcha && !captchaValue) {
+      setError('Por favor, complete o reCAPTCHA');
+      return;
+    }
+
     setLoading(true);
 
     try {
       await onLogin(email, password);
+      // Reset tentativas em caso de sucesso
+      setLoginAttempts(0);
     } catch (err) {
       const appError = err as AppError;
       setError(appError.userMessage || 'Erro ao fazer login. Verifique suas credenciais.');
+      // Incrementar tentativas
+      setLoginAttempts(prev => prev + 1);
+      // Reset captcha em caso de erro
+      if (showCaptcha) {
+        recaptchaRef.current?.reset();
+        setCaptchaValue(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -101,6 +123,27 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchMode }) => {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+          </div>
+          
+          {showCaptcha && (
+            <div className="mb-6 flex justify-center">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                onChange={(value) => setCaptchaValue(value)}
+                theme="light"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center justify-end mb-6">
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            >
+              Esqueceu sua senha?
+            </button>
           </div>
           <div className="flex items-center justify-between">
             <button

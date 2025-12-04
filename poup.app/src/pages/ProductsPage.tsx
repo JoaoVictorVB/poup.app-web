@@ -69,7 +69,8 @@ export default function ProductsPage({
   }, [showSortMenu, showFilterMenu]);
 
   const totalSpent = products.reduce((total, prod) => total + prod.total_price, 0);
-  const totalItems = products.reduce((total, prod) => total + prod.installments, 0);
+  const totalInstallments = products.reduce((total, prod) => total + prod.installments, 0);
+  const totalProducts = products.length;
 
   // Estatísticas de pagamento
   const now = new Date();
@@ -89,15 +90,18 @@ export default function ProductsPage({
     return new Date(prod.next_payment) < now;
   }).length;
 
-  // Gasto previsto para este mês (parcelas que vencem este mês)
+  // Gasto previsto para este mês: tudo que não foi pago e vence até o final deste mês + atrasadas
   const expectedMonthlySpending = products.reduce((total, prod) => {
     if (!prod.next_payment || prod.status === 'paid') return total;
+    
     const nextPayment = new Date(prod.next_payment);
-    const isThisMonth =
-      nextPayment.getMonth() === currentMonth && nextPayment.getFullYear() === currentYear;
-    if (isThisMonth) {
+    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
+    
+    // Conta se está atrasada OU se vence até o final deste mês
+    if (nextPayment <= endOfMonth) {
       return total + prod.installment_value;
     }
+    
     return total;
   }, 0);
 
@@ -155,20 +159,27 @@ export default function ProductsPage({
       </div>
 
       {/* Cards de totais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatsCard
-          title="Itens Comprados"
-          value={totalItems}
+          title="Produtos Cadastrados"
+          value={totalProducts}
+          icon={Package}
+          color="blue"
+          delay={0.25}
+        />
+        <StatsCard
+          title="Total de Parcelas"
+          value={totalInstallments}
           icon={Package}
           color="purple"
-          delay={0.25}
+          delay={0.3}
         />
         <StatsCard
           title="Total Gasto"
           value={formatCurrency(totalSpent)}
           icon={Package}
           color="orange"
-          delay={0.3}
+          delay={0.35}
         />
       </div>
 
