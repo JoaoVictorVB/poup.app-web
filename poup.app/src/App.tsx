@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import ForgotPasswordPage from './components/auth/ForgotPasswordPage';
 import LoginPage from './components/auth/LoginPage';
 import SignUpPage from './components/auth/SignUpPage';
 import Header from './components/layout/Header';
@@ -63,7 +64,7 @@ export default function App() {
     refetch: refetchPayments,
   } = usePayments();
 
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot-password'>('login');
   const [activeView, setActiveView] = useState<ActiveView>('overview');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -199,7 +200,16 @@ export default function App() {
 
   if (!user) {
     if (authMode === 'login') {
-      return <LoginPage onLogin={handleLogin} onSwitchMode={() => setAuthMode('signup')} />;
+      return (
+        <LoginPage
+          onLogin={handleLogin}
+          onSwitchMode={() => setAuthMode('signup')}
+          onForgotPassword={() => setAuthMode('forgot-password')}
+        />
+      );
+    }
+    if (authMode === 'forgot-password') {
+      return <ForgotPasswordPage onBackToLogin={() => setAuthMode('login')} />;
     }
     return <SignUpPage onSignUp={handleSignUp} onSwitchMode={() => setAuthMode('login')} />;
   }

@@ -22,14 +22,29 @@ const CalendarPageApi: React.FC<CalendarPageApiProps> = ({ subscriptions, loadin
     return date;
   });
 
-  const subsByDate = subscriptions.reduce(
-    (acc, sub) => {
-      const date = new Date(sub.next_payment);
-      const dateKey = date.toDateString();
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(sub);
+  // Mapear assinaturas por data, considerando recorrência
+  const subsByDate = days.reduce(
+    (acc, day) => {
+      const dateKey = day.toDateString();
+      acc[dateKey] = [];
+
+      subscriptions.forEach((sub) => {
+        const nextPayment = new Date(sub.next_payment);
+        const dayOfMonth = nextPayment.getDate();
+
+        // Para assinaturas mensais, mostrar em todos os meses no mesmo dia
+        if (sub.billing_cycle === 'monthly') {
+          if (day.getDate() === dayOfMonth) {
+            acc[dateKey].push(sub);
+          }
+        } else if (sub.billing_cycle === 'yearly') {
+          // Para anuais, só mostrar na data exata
+          if (day.toDateString() === nextPayment.toDateString()) {
+            acc[dateKey].push(sub);
+          }
+        }
+      });
+
       return acc;
     },
     {} as Record<string, Subscription[]>

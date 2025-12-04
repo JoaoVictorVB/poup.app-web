@@ -112,14 +112,23 @@ const SubscriptionsPageApi: React.FC<SubscriptionsPageApiProps> = ({
     return new Date(sub.next_payment) < now;
   }).length;
 
-  // Gasto previsto para este mês (apenas o que vence este mês)
+  // Gasto previsto para este mês: soma todas as assinaturas mensais + anuais que vencem este mês
   const expectedMonthlySpending = subscriptions.reduce((total, sub) => {
-    const nextPayment = new Date(sub.next_payment);
-    const isThisMonth =
-      nextPayment.getMonth() === currentMonth && nextPayment.getFullYear() === currentYear;
-    if (isThisMonth && sub.status !== 'paid') {
+    // Assinaturas mensais sempre contam (independente de já pagas ou não)
+    if (sub.billing_cycle === 'monthly') {
       return total + sub.price;
     }
+    
+    // Assinaturas anuais só contam se vencem este mês
+    if (sub.billing_cycle === 'yearly') {
+      const nextPayment = new Date(sub.next_payment);
+      const isThisMonth =
+        nextPayment.getMonth() === currentMonth && nextPayment.getFullYear() === currentYear;
+      if (isThisMonth) {
+        return total + sub.price;
+      }
+    }
+    
     return total;
   }, 0);
 
