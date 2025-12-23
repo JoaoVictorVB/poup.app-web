@@ -18,7 +18,7 @@ PoupApp é uma aplicação web que ajuda você a:
 
 ## ✨ Características
 
-- ✅ **Autenticação JWT** - Login seguro e persistente com tokens de 7 dias
+- ✅ **Autenticação JWT** - Login seguro e persistente com tokens de 30 minutos
 - ✅ **CRUD Completo** - Criar, ler, atualizar e deletar assinaturas
 - ✅ **Cálculos Automáticos** - Gastos mensais e anuais calculados automaticamente
 - ✅ **Calendário Visual** - Veja seus pagamentos organizados por data
@@ -153,14 +153,17 @@ VITE_API_URL=http://localhost:3333
 Este projeto implementa diversas práticas de segurança:
 
 - **Bcrypt** - Senhas hash com salt automático (8 rounds)
-- **JWT** - Tokens assinados com expiração de 7 dias
+- **JWT** - Tokens assinados com expiração de 30 minutos
 - **Rate Limiting** - 100 req/min global, 5 req/min em autenticação
 - **Security Headers** - HSTS, CSP, X-Frame-Options, X-XSS-Protection
 - **Validação de Dados** - Zod em todas as entradas
 - **CORS** - Configurado para aceitar apenas frontend autorizado
 - **Password History** - Impede reutilização das últimas 3 senhas
 - **Account Locking** - Bloqueio após 5 tentativas falhas (10 min)
-.
+
+Para mais detalhes sobre segurança, consulte:
+- 📋 [**PROJECT_EVALUATION.md**](./PROJECT_EVALUATION.md) - Avaliação completa do projeto com storytelling, características, testes e vulnerabilidades
+- 🛡️ [**RISK_ANALYSIS.md**](./RISK_ANALYSIS.md) - Análise de riscos e gerência de segurança
 
 ## 📝 Licença
 
